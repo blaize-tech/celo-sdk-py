@@ -1,8 +1,8 @@
 import sys
 
-from web3 import Web3
-
 from sdk.wallet import Wallet
+
+from web3 import Web3
 
 
 class GoldToken:
