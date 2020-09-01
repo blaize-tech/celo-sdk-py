@@ -31,6 +31,39 @@ class Wallet:
         self.gas = 10000000
         self.gas_increase_step = 1000000
 
+    @property
+    def fee_currency(self):
+        return self.fee_currency
+    
+    @property
+    def gateway_fee_recipient(self):
+        return self.gateway_fee_recipient
+
+    @property
+    def gateway_fee(self):
+        return self.gateway_fee
+
+    @fee_currency.setter
+    def fee_currency(self, new_fee_currency: str):
+        if self.web3.isAddress(new_fee_currency):
+            self.fee_currency = new_fee_currency
+        else:
+            raise TypeError("Incorrect fee currency address")
+
+    @gateway_fee_recipient.setter
+    def gateway_fee_recipient(self, new_gateway_fee_recipient: str):
+        if self.web3.is_Address(new_gateway_fee_recipient):
+            self.gateway_fee_recipient = new_gateway_fee_recipient
+        else:
+            raise TypeError("Incorrect gateway fee recipient")
+
+    @gateway_fee.setter
+    def gateway_fee(self, new_gateway_fee: int):
+        if type(new_gateway_fee) == int:
+            self.gateway_fee = new_gateway_fee
+        else:
+            raise TypeError("Incorrect new gateway fee type data")
+
     def construct_transaction(self, contract_method: web3._utils.datatypes, gas: int = None) -> dict:
         """
         Takes contract method call object and builds transaction dict with it
@@ -138,39 +171,9 @@ class Wallet:
         tx_hash = self.web3.eth.sendRawTransaction(signed_raw_tx)
         return tx_hash.hex()
 
-    def set_fee_currency(self, new_fee_currency: str):
-        try:
-            if self.web3.isAddress(new_fee_currency):
-                self.fee_currency = new_fee_currency
-            else:
-                raise TypeError("Incorrect fee currency address")
-        except:
-            raise Exception(
-                f"Unexpected error while set fee currency for wallet: {sys.exc_info()[1]}")
-
-    def set_gateway_fee_recipient(self, new_gateway_fee_recipient: str):
-        try:
-            if self.web3.is_Address(new_gateway_fee_recipient):
-                self.gateway_fee_recipient = new_gateway_fee_recipient
-            else:
-                raise TypeError("Incorrect gateway fee recipient")
-        except:
-            raise Exception(
-                f"Unexpected error while set fee currency for wallet: {sys.exc_info()[1]}")
-
-    def set_gateway_fee(self, new_gateway_fee: int):
-        try:
-            if type(new_gateway_fee) == int:
-                self.gateway_fee = new_gateway_fee
-            else:
-                raise TypeError("Incorrect new gateway fee type data")
-        except:
-            raise Exception(
-                f"Unexpected error while set new gateway fee for wallet: {sys.exc_info()[1]}")
-
     def get_gas_price(self) -> int:
         try:
-            gas_price = self.gas_price_contract.functions.gasPriceMinimum().call()
+            gas_price = self.gas_price_contract.functions.gasPriceMinimum().call()  # TODO: change here to call ContractWrapper function
             return gas_price
         except:
             raise Exception(
