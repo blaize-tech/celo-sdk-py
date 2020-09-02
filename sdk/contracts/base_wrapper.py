@@ -9,9 +9,10 @@ from web3 import Web3
 
 
 class BaseWrapper:
-    def __init__(self, web3: Web3, registry: Registry,  wallet: Wallet = None):
+    def __init__(self, web3: Web3, wallet: Wallet = None):
         self.web3 = web3
-        self.registry = registry
+        self.registry = Registry(self.web3)
+        self.registry.set_registry()
         self.wallet = wallet
         self.contracts = {}
 

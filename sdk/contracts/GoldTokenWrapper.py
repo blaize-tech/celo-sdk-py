@@ -10,7 +10,7 @@ class GoldToken:
         self.web3 = web3
         self.address = address
         self._contract = self.web3.eth.contract(self.address, abi=abi)
-        self.wallet = wallet
+        self.__wallet = wallet
 
     def allowance(self, from_addr: str, to_addr: str) -> int:
         """

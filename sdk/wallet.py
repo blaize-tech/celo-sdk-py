@@ -10,59 +10,85 @@ from web3 import Web3
 
 class Wallet:
     """
-    Wallet requires for transaction building, signing and sending to the blockchain
+    Wallet class requires for transaction building, signing and sending to the blockchain.
+    Also you can configure Wallet as you wish by using settres methods
 
     Attributes
         web3: web3.Web3
             web3 object
         priv_key: bytes
             private key in bytes (b'')
+        gas_price_contract: sdk.contracts.GasPriceMinimum (optional)
+            GasPriceMinimum contract wrapper
     """
 
-    def __init__(self, web3: Web3, priv_key: bytes, gas_price_contract: "GasPriceContractWrapper"):
+    def __init__(self, web3: Web3, priv_key: bytes, gas_price_contract: "GasPriceContractWrapper" = None):
         self.web3 = web3
         acc = Account()
-        self._account = acc.from_key(priv_key)
+        self.__account = acc.from_key(priv_key)
         self.gas_price_contract = gas_price_contract
-        self.address = self._account.address
-        self.fee_currency = None
-        self.gateway_fee_recipient = None
-        self.gateway_fee = None
-        self.gas = 10000000
+        self.address = self.__account.address
+        self._fee_currency = None  # TODO: by default set to Celo token ?
+        self._gateway_fee_recipient = None
+        self._gateway_fee = None
+        self._gas_price = None
+        self._gas = 10000000
         self.gas_increase_step = 1000000
 
     @property
-    def fee_currency(self):
-        return self.fee_currency
-    
-    @property
-    def gateway_fee_recipient(self):
-        return self.gateway_fee_recipient
+    def fee_currency(self) -> str:
+        return self._fee_currency
 
     @property
-    def gateway_fee(self):
-        return self.gateway_fee
+    def gateway_fee_recipient(self) -> str:
+        return self._gateway_fee_recipient
+
+    @property
+    def gateway_fee(self) -> int:
+        return self._gateway_fee
+
+    @property
+    def gas_price(self) -> int:
+        return self._gas_price
+
+    @property
+    def gas(self) -> int:
+        return self._gas
+
+    @gas_price.setter
+    def gas_price(self, new_gas_price: int):
+        if type(new_gas_price) != int:
+            raise TypeError("Gas price value should be int type")
+        self._gas_price = new_gas_price
 
     @fee_currency.setter
     def fee_currency(self, new_fee_currency: str):
-        if self.web3.isAddress(new_fee_currency):
-            self.fee_currency = new_fee_currency
-        else:
+        if not self.web3.isAddress(new_fee_currency):
             raise TypeError("Incorrect fee currency address")
+        self._fee_currency = new_fee_currency
 
     @gateway_fee_recipient.setter
     def gateway_fee_recipient(self, new_gateway_fee_recipient: str):
-        if self.web3.is_Address(new_gateway_fee_recipient):
-            self.gateway_fee_recipient = new_gateway_fee_recipient
-        else:
+        if not self.web3.is_Address(new_gateway_fee_recipient):
             raise TypeError("Incorrect gateway fee recipient")
+        self._gateway_fee_recipient = new_gateway_fee_recipient
 
     @gateway_fee.setter
     def gateway_fee(self, new_gateway_fee: int):
-        if type(new_gateway_fee) == int:
-            self.gateway_fee = new_gateway_fee
-        else:
+        if type(new_gateway_fee) != int:
             raise TypeError("Incorrect new gateway fee type data")
+        self._gateway_fee = new_gateway_fee
+
+    @gas.setter
+    def gas(self, new_gas: int):
+        if type(new_gas) != int:
+            raise TypeError("Incorrect new gas type data")
+        self._gas = new_gas
+
+    def set_new_key(self, priv_key: bytes):
+        acc = Account()
+        self.__account = acc.from_key(priv_key)
+        self.address = self.__account.address
 
     def construct_transaction(self, contract_method: web3._utils.datatypes, gas: int = None) -> dict:
         """
@@ -70,25 +96,27 @@ class Wallet:
 
         Parameters:
             contract_method: web3._utils.datatypes
+            gas: int (optional)
         Returns:
             constructed transaction in dict
         """
         try:
             nonce = self.web3.eth.getTransactionCount(self.address)
 
-            if self.fee_currency:
-                gas = gas if gas else self.gas
-                base_rows = {'gasPrice': self.get_gas_price(
-                ), 'nonce': nonce, 'gas': gas, 'from': self.address, 'feeCurrency': self.fee_currency}
+            if self._fee_currency:
+                gas = gas if gas else self._gas
+                gas_price = self._gas_price if self._gas_price else self.get_network_gas_price()
+                base_rows = {'gasPrice': gas_price, 'nonce': nonce, 'gas': gas,
+                             'from': self.address, 'feeCurrency': self._fee_currency}
             else:
                 raise ValueError(
                     "Can't construct transaction without fee currency, set fee currency please")
 
-            if self.gateway_fee_recipient:
-                base_rows['gatewayFeeRecipient'] = self.gateway_fee_recipient
+            if self._gateway_fee_recipient:
+                base_rows['gatewayFeeRecipient'] = self._gateway_fee_recipient
 
-            if self.gateway_fee:
-                base_rows['gatewayFee'] = self.gateway_fee
+            if self._gateway_fee:
+                base_rows['gatewayFee'] = self._gateway_fee
 
             tx = contract_method.buildTransaction(base_rows)
             return tx
@@ -107,7 +135,7 @@ class Wallet:
             signed transaction object
         """
         try:
-            signed_tx = self._account.sign_transaction(tx)
+            signed_tx = self.__account.sign_transaction(tx)
             return signed_tx
         except:
             raise Exception(
@@ -138,6 +166,7 @@ class Wallet:
         Parameters:
             contract_method: web3._utils.datatypes
                 object of contract method call
+            gas: int (optional)
         Returns:
             hash of sended transaction
         """
@@ -150,7 +179,7 @@ class Wallet:
             if error_message == 'intrinsic gas too low':
                 print(
                     "Got error about too low gas value. Increase gas value and try to send it again.")
-                gas = gas + self.gas_increase_step if gas else self.gas + self.gas_increase_step
+                gas = gas + self.gas_increase_step if gas else self._gas + self.gas_increase_step
                 self.send_transaction(contract_method, gas)
             else:
                 raise ValueError(error_message)
@@ -171,9 +200,19 @@ class Wallet:
         tx_hash = self.web3.eth.sendRawTransaction(signed_raw_tx)
         return tx_hash.hex()
 
-    def get_gas_price(self) -> int:
+    def get_network_gas_price(self) -> int:
+        """
+        Calls smart contract method to get network gas price
+
+        Returns:
+            gas price
+        """
         try:
-            gas_price = self.gas_price_contract.functions.gasPriceMinimum().call()  # TODO: change here to call ContractWrapper function
+            if not self.gas_price_contract:
+                raise ValueError(
+                    "Set GasPriceMinimum wrapper to the wallet to get network gas price")
+            # TODO: change here to call ContractWrapper function
+            gas_price = self.gas_price_contract.functions.gasPriceMinimum().call()
             return gas_price
         except:
             raise Exception(
