@@ -24,10 +24,11 @@ class Wallet:
 
     def __init__(self, web3: Web3, priv_key: bytes, gas_price_contract: "GasPriceContractWrapper" = None):
         self.web3 = web3
+        self.__accounts = {}
         acc = Account()
-        self.__account = acc.from_key(priv_key)
+        self.active_account = acc.from_key(priv_key)
+        self.__accounts.update({self.active_account.address: self.active_account})
         self.gas_price_contract = gas_price_contract
-        self.address = self.__account.address
         self._fee_currency = None  # TODO: by default set to Celo token ?
         self._gateway_fee_recipient = None
         self._gateway_fee = None
@@ -54,6 +55,10 @@ class Wallet:
     @property
     def gas(self) -> int:
         return self._gas
+
+    @property
+    def accounts(self) -> dict:
+        return self.__accounts
 
     @gas_price.setter
     def gas_price(self, new_gas_price: int):
@@ -85,10 +90,25 @@ class Wallet:
             raise TypeError("Incorrect new gas type data")
         self._gas = new_gas
 
-    def set_new_key(self, priv_key: bytes):
+    @accounts.setter
+    def accounts(self, new_acc: Account):
+        if type(new_acc) != Account:
+            raise TypeError("Incorrect new account type")
+        self.__accounts.update({new_acc.address: new_acc})
+        self.active_account = new_acc
+
+    def add_new_key(self, priv_key: bytes):
         acc = Account()
-        self.__account = acc.from_key(priv_key)
-        self.address = self.__account.address
+        self.active_account = acc.from_key(priv_key)
+        self.__accounts.update({self.active_account.address: self.active_account})
+
+    def remove_account(self, account_address: str):
+        del self.__accounts[account_address]
+
+    def change_account(self, account_address: str):
+        if account_address not in self.__accounts:
+            raise KeyError("There is no account with such an address in wallet")
+        self.active_account = self.__accounts[account_address]
 
     def construct_transaction(self, contract_method: web3._utils.datatypes, gas: int = None) -> dict:
         """
@@ -101,13 +121,13 @@ class Wallet:
             constructed transaction in dict
         """
         try:
-            nonce = self.web3.eth.getTransactionCount(self.address)
+            nonce = self.web3.eth.getTransactionCount(self.active_account.address)
 
             if self._fee_currency:
                 gas = gas if gas else self._gas
                 gas_price = self._gas_price if self._gas_price else self.get_network_gas_price()
                 base_rows = {'gasPrice': gas_price, 'nonce': nonce, 'gas': gas,
-                             'from': self.address, 'feeCurrency': self._fee_currency}
+                             'from': self.active_account.address, 'feeCurrency': self._fee_currency}
             else:
                 raise ValueError(
                     "Can't construct transaction without fee currency, set fee currency please")
@@ -135,7 +155,7 @@ class Wallet:
             signed transaction object
         """
         try:
-            signed_tx = self.__account.sign_transaction(tx)
+            signed_tx = self.active_account.sign_transaction(tx)
             return signed_tx
         except:
             raise Exception(

@@ -60,8 +60,12 @@ class Kit:
         self.__wallet.gas = gas
 
     @wallet.setter
-    def wallet_new_key(self, priv_key: bytes):
-        self.__wallet.set_new_key(priv_key)
+    def wallet_add_new_key(self, priv_key: bytes):
+        self.__wallet.add_new_key(priv_key)
+
+    @wallet.setter
+    def wallet_change_account(self, account_address: str):
+        self.__wallet.change_account(account_address)
 
     def create_wallet(self, priv_key: bytes = None):
         if not priv_key:
