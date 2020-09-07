@@ -147,13 +147,13 @@ REQUIRED_TRANSACITON_KEYS = ALLOWED_TRANSACTION_KEYS.difference(TRANSACTION_DEFA
 
 def assert_valid_fields(transaction_dict):
     # check if any keys are missing
-
     missing_keys = REQUIRED_TRANSACITON_KEYS.difference(transaction_dict.keys())
     if missing_keys:
         raise TypeError("Transaction must include these fields: %r" % missing_keys)
 
     # check if any extra keys were specified
     superfluous_keys = set(transaction_dict.keys()).difference(ALLOWED_TRANSACTION_KEYS)
+
     if superfluous_keys:
         raise TypeError("Transaction must not include unrecognized fields: %r" % superfluous_keys)
 

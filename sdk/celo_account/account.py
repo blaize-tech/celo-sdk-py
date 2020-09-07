@@ -32,32 +32,32 @@ from hexbytes import (
     HexBytes,
 )
 
-from eth_account._utils.signing import (
+from sdk.celo_account._utils.signing import (
     hash_of_signed_transaction,
     sign_message_hash,
     sign_transaction_dict,
     to_standard_signature_bytes,
     to_standard_v,
 )
-from eth_account._utils.transactions import (
+from sdk.celo_account._utils.transactions import (
     Transaction,
     vrs_from,
 )
-from eth_account.datastructures import (
+from sdk.celo_account.datastructures import (
     SignedMessage,
     SignedTransaction,
 )
-from eth_account.hdaccount import (
+from sdk.celo_account.hdaccount import (
     ETHEREUM_DEFAULT_PATH,
     generate_mnemonic,
     key_from_seed,
     seed_from_mnemonic,
 )
-from eth_account.messages import (
+from sdk.celo_account.messages import (
     SignableMessage,
     _hash_eip191_message,
 )
-from eth_account.signers.local import (
+from sdk.celo_account.signers.local import (
     LocalAccount,
 )
 
@@ -70,7 +70,7 @@ class Account(object):
     """
     _keys = keys
 
-    _default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
+    _default_kdf = os.getenv('sdk.celo_account_KDF', 'scrypt')
 
     # Enable unaudited features (off by default)
     _use_unaudited_hdwallet_features = False
@@ -85,7 +85,7 @@ class Account(object):
     @combomethod
     def create(self, extra_entropy=''):
         r"""
-        Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`.
+        Creates a new private key, and returns it as a :class:`~sdk.celo_account.local.LocalAccount`.
 
         :param extra_entropy: Add extra randomness to whatever randomness your OS can provide
         :type extra_entropy: str or bytes or int
@@ -93,7 +93,7 @@ class Account(object):
 
         .. code-block:: python
 
-            >>> from eth_account import Account
+            >>> from sdk.celo_account import Account
             >>> acct = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
@@ -167,7 +167,7 @@ class Account(object):
         :rtype: dict
 
         If kdf is not set, the default key derivation function falls back to the
-        environment variable :envvar:`ETH_ACCOUNT_KDF`. If that is not set, then
+        environment variable :envvar:`sdk.celo_account_KDF`. If that is not set, then
         'scrypt' will be used as the default.
 
         .. doctest:: python
@@ -211,7 +211,7 @@ class Account(object):
     @combomethod
     def privateKeyToAccount(self, private_key):
         """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.from_key`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.account.Account.from_key`.
             This method will be removed in v0.5
         """
         warnings.warn(
@@ -264,7 +264,7 @@ class Account(object):
 
         .. doctest:: python
 
-            >>> from eth_account import Account
+            >>> from sdk.celo_account import Account
             >>> Account.enable_unaudited_hdwallet_features()
             >>> acct = Account.from_mnemonic(
             ...  "coral allow abandon recipe top tray caught video climb similar prepare bracket "
@@ -297,7 +297,7 @@ class Account(object):
 
         .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
 
-        Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
+        Creates a new private key, and returns it as a :class:`~sdk.celo_account.local.LocalAccount`,
         alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
 
         :param str passphrase: Extra passphrase to encrypt the seed phrase
@@ -312,7 +312,7 @@ class Account(object):
 
         .. doctest:: python
 
-            >>> from eth_account import Account
+            >>> from sdk.celo_account import Account
             >>> Account.enable_unaudited_hdwallet_features()
             >>> acct, mnemonic = Account.create_with_mnemonic()
             >>> acct.address # doctest: +SKIP
@@ -349,8 +349,8 @@ class Account(object):
 
         .. doctest:: python
 
-            >>> from eth_account.messages import encode_defunct
-            >>> from eth_account import Account
+            >>> from sdk.celo_account.messages import encode_defunct
+            >>> from sdk.celo_account import Account
             >>> message = encode_defunct(text="I♥SF")
             >>> vrs = (
             ...   28,
@@ -406,7 +406,7 @@ class Account(object):
         Get the address of the account that signed the message with the given hash.
         You must specify exactly one of: vrs or signature
 
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.recover_message`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.account.Account.recover_message`.
             This method might be removed as early as v0.5
 
         :param message_hash: the hash of the message that you want to verify
@@ -445,7 +445,7 @@ class Account(object):
     @combomethod
     def recoverTransaction(self, serialized_transaction):
         """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.recover_transaction`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.account.Account.recover_transaction`.
             This method will be removed in v0.5
         """
         warnings.warn(
@@ -477,7 +477,7 @@ class Account(object):
 
     def setKeyBackend(self, backend):
         """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.set_key_backend`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.account.Account.set_key_backend`.
             This method will be removed in v0.5
         """
         warnings.warn(
@@ -507,23 +507,23 @@ class Account(object):
 
         If you would like historical compatibility with
         :meth:`w3.eth.sign() <web3.eth.Eth.sign>`
-        you can use :meth:`~eth_account.messages.encode_defunct`.
+        you can use :meth:`~sdk.celo_account.messages.encode_defunct`.
 
         Other options are the "validator", or "structured data" standards. (Both of these
         are in *DRAFT* status currently, so be aware that the implementation is not
         guaranteed to be stable). You can import all supported message encoders in
-        ``eth_account.messages``.
+        ``sdk.celo_account.messages``.
 
         :param signable_message: the encoded message for signing
         :param private_key: the key to sign the message with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most importantly the fields: v, r, and s
-        :rtype: ~eth_account.datastructures.SignedMessage
+        :rtype: ~sdk.celo_account.datastructures.SignedMessage
 
         .. doctest:: python
 
             >>> msg = "I♥SF"
-            >>> from eth_account.messages import encode_defunct
+            >>> from sdk.celo_account.messages import encode_defunct
             >>> msghash = encode_defunct(text=msg)
             >>> msghash
             SignableMessage(version=b'E',
@@ -551,12 +551,12 @@ class Account(object):
         .. WARNING:: *Never* sign a hash that you didn't generate,
             it can be an arbitrary transaction. For example, it might
             send all of your account's ether to an attacker.
-            Instead, prefer :meth:`~eth_account.account.Account.sign_message`,
+            Instead, prefer :meth:`~sdk.celo_account.account.Account.sign_message`,
             which cannot accidentally sign a transaction.
 
         Sign the provided hash.
 
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.sign_message`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.account.Account.sign_message`.
             This method will be removed in v0.5
 
         :param message_hash: the 32-byte message hash to be signed
@@ -565,7 +565,7 @@ class Account(object):
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most
           importantly the fields: v, r, and s
-        :rtype: ~eth_account.datastructures.SignedMessage
+        :rtype: ~sdk.celo_account.datastructures.SignedMessage
         """
         warnings.warn(
             "signHash is deprecated in favor of sign_message",
@@ -593,7 +593,7 @@ class Account(object):
     @combomethod
     def signTransaction(self, transaction_dict, private_key):
         """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.sign_transaction`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.account.Account.sign_transaction`.
             This method will be removed in v0.5
         """
         warnings.warn(

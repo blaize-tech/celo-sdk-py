@@ -6,7 +6,7 @@ from eth_utils import (
     to_int,
 )
 
-from eth_account._utils.transactions import (
+from sdk.celo_account._utils.transactions import (
     ChainAwareUnsignedTransaction,
     UnsignedTransaction,
     encode_transaction,

@@ -1,6 +1,6 @@
 import warnings
 
-from eth_account.signers.base import (
+from sdk.celo_account.signers.base import (
     BaseAccount,
 )
 
@@ -28,7 +28,7 @@ class LocalAccount(BaseAccount):
     def __init__(self, key, account):
         """
         :param eth_keys.PrivateKey key: to prefill in private key execution
-        :param ~eth_account.account.Account account: the key-unaware management API
+        :param ~sdk.celo_account.account.Account account: the key-unaware management API
         """
         self._publicapi = account
 
@@ -46,7 +46,7 @@ class LocalAccount(BaseAccount):
     @property
     def privateKey(self):
         """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.signers.local.LocalAccount.key`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.signers.local.LocalAccount.key`.
             This attribute will be removed in v0.5
         """
         warnings.warn(
@@ -65,7 +65,7 @@ class LocalAccount(BaseAccount):
     def encrypt(self, password, kdf=None, iterations=None):
         """
         Generate a string with the encrypted key, as in
-        :meth:`~eth_account.account.Account.encrypt`, but without a private key argument.
+        :meth:`~sdk.celo_account.account.Account.encrypt`, but without a private key argument.
         """
         return self._publicapi.encrypt(self.key, password, kdf=kdf, iterations=iterations)
 
@@ -78,7 +78,7 @@ class LocalAccount(BaseAccount):
     def sign_message(self, signable_message):
         """
         Generate a string with the encrypted key, as in
-        :meth:`~eth_account.account.Account.sign_message`, but without a private key argument.
+        :meth:`~sdk.celo_account.account.Account.sign_message`, but without a private key argument.
         """
         return self._publicapi.sign_message(signable_message, private_key=self.key)
 

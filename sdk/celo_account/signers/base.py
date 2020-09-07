@@ -3,7 +3,7 @@ from abc import (
     abstractmethod,
 )
 
-from eth_account.messages import (
+from sdk.celo_account.messages import (
     SignableMessage,
 )
 
@@ -31,7 +31,7 @@ class BaseAccount(ABC):
     @abstractmethod
     def sign_message(self, signable_message: SignableMessage):
         """
-        Sign the EIP-191_ message, as in :meth:`~eth_account.account.Account.sign_message`
+        Sign the EIP-191_ message, as in :meth:`~sdk.celo_account.account.Account.sign_message`
         but without specifying the private key.
 
         :param signable_message: The encoded message, ready for signing
@@ -43,10 +43,10 @@ class BaseAccount(ABC):
     @abstractmethod
     def signHash(self, message_hash):
         """
-        Sign the hash of a message, as in :meth:`~eth_account.account.Account.signHash`
+        Sign the hash of a message, as in :meth:`~sdk.celo_account.account.Account.signHash`
         but without specifying the private key.
 
-        .. CAUTION:: Deprecated for :meth:`~eth_account.signers.base.BaseAccount.sign_message`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.signers.base.BaseAccount.sign_message`.
             To be removed in v0.5
 
         :param bytes message_hash: 32 byte hash of the message to sign
@@ -56,10 +56,10 @@ class BaseAccount(ABC):
     @abstractmethod
     def signTransaction(self, transaction_dict):
         """
-        Sign a transaction, as in :meth:`~eth_account.account.Account.sign_transaction`
+        Sign a transaction, as in :meth:`~sdk.celo_account.account.Account.sign_transaction`
         but without specifying the private key.
 
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.signers.local.sign_transaction`.
+        .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.account.signers.local.sign_transaction`.
             This method will be removed in v0.5
 
         :param dict transaction_dict: transaction with all fields specified
@@ -69,7 +69,7 @@ class BaseAccount(ABC):
     @abstractmethod
     def sign_transaction(self, transaction_dict):
         """
-        Sign a transaction, as in :meth:`~eth_account.account.Account.sign_transaction`
+        Sign a transaction, as in :meth:`~sdk.celo_account.account.Account.sign_transaction`
         but without specifying the private key.
 
         :param dict transaction_dict: transaction with all fields specified

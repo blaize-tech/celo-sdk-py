@@ -23,12 +23,12 @@ from hexbytes import (
     HexBytes,
 )
 
-from eth_account._utils.structured_data.hashing import (
+from sdk.celo_account._utils.structured_data.hashing import (
     hash_domain,
     hash_message as hash_eip712_message,
     load_and_validate_structured_message,
 )
-from eth_account._utils.validation import (
+from sdk.celo_account._utils.validation import (
     is_valid_address,
 )
 
@@ -177,7 +177,7 @@ def encode_defunct(
 
     .. doctest:: python
 
-        >>> from eth_account.messages import encode_defunct
+        >>> from sdk.celo_account.messages import encode_defunct
         >>> from eth_utils.curried import to_hex, to_bytes
 
         >>> message_text = "I♥SF"
@@ -218,7 +218,7 @@ def defunct_hash_message(
     """
     Convert the provided message into a message hash, to be signed.
 
-    .. CAUTION:: Intented for use with the deprecated :meth:`eth_account.account.Account.signHash`.
+    .. CAUTION:: Intented for use with the deprecated :meth:`sdk.celo_account.account.Account.signHash`.
         This is for backwards compatibility only. All new implementations
         should use :meth:`encode_defunct` instead.
 
