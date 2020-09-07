@@ -26,6 +26,20 @@ class StableToken:
         self._contract = self.web3.eth.contract(self.address, abi=abi)
         self.__wallet = wallet
 
+    def allowance(self, account_owner: str, spender: str) -> int:
+        """
+        Gets the amount of owner's StableToken allowed to be spent by spender
+
+        Parameters:
+            account_owner: str
+                The owner of the StableToken
+            spender: str
+                The spender of the StableToken
+        Returns:
+            The amount of StableToken owner is allowing spender to spend
+        """
+        return self._contract.functions.allowance(account_owner, spender).call()
+
     def name(self) -> str:
         """
         Returns name of token
