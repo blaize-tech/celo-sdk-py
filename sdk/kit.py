@@ -1,10 +1,11 @@
 import sys
 
-from sdk.wallet import Wallet
-from sdk.contracts.base_wrapper import BaseWrapper
-
 from web3 import Web3
 from web3.auto import w3
+
+from sdk.contracts.base_wrapper import BaseWrapper
+from sdk.registry import Registry
+from sdk.wallet import Wallet
 
 
 class Kit:
@@ -25,8 +26,12 @@ class Kit:
         else:
             provider = Web3.HTTPProvider(provider_url)
         self.w3 = Web3(provider)
-        self.__wallet = self.create_wallet()
-        self.base_wrapper = BaseWrapper(self.w3, self.__wallet)
+        registry = Registry(self.w3)
+        registry.set_registry()
+        gas_price_contract = BaseWrapper.get_gas_price_contract(self.w3, registry)
+        self.__wallet = self.create_wallet(gas_price_contract)
+        self.base_wrapper = BaseWrapper(self.w3, registry, self.__wallet)
+        self.__wallet.fee_currency = self.base_wrapper.registry.load_contract_by_name("StableToken")['address']
 
     @property
     def wallet(self):
@@ -67,10 +72,10 @@ class Kit:
     def wallet_change_account(self, account_address: str):
         self.__wallet.change_account(account_address)
 
-    def create_wallet(self, priv_key: bytes = None):
+    def create_wallet(self, registry: Registry, priv_key: bytes = None):
         if not priv_key:
             priv_key = self.generate_new_key()
-        wallet = Wallet(self.w3, priv_key)
+        wallet = Wallet(self.w3, priv_key, registry)
         return wallet
 
     def generate_new_key(self):

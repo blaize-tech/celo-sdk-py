@@ -9,12 +9,22 @@ from web3 import Web3
 
 
 class BaseWrapper:
-    def __init__(self, web3: Web3, wallet: Wallet = None):
+    def __init__(self, web3: Web3, registry: Registry, wallet: Wallet = None):
         self.web3 = web3
-        self.registry = Registry(self.web3)
-        self.registry.set_registry()
+        self.registry = registry
+        if not self.registry.registry:
+            self.registry.set_registry()
         self.wallet = wallet
         self.contracts = {}
+
+    @classmethod
+    def get_gas_price_contract(self, w3: Web3, registry: Registry):
+        try:
+            gas_contract_data = registry.load_contract_by_name('GasPriceMinimum')
+            contract = GasPriceMinimumWrapper.GasPriceMinimum(w3, gas_contract_data['address'], gas_contract_data['abi'])
+            return contract
+        except:
+            raise Exception(f"Error while create GasPriceMinimum wrapper contract:\n{sys.exc_info()[1]}")
 
     def create_all_the_contracts(self):
         """
@@ -28,6 +38,10 @@ class BaseWrapper:
         except:
             raise Exception(
                 f"Error occurs while create all the contracts objecst:\n{sys.exc_info()[1]}")
+
+    def create_and_get_contract_by_name(self, contract_name: str) -> 'ContractWrapperObject':
+        self.create_contract_by_name(contract_name)
+        return self.get_contract_by_name(contract_name)
 
     def get_contract_by_name(self, contract_name: str) -> 'ContractWrapperObject':
         """

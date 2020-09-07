@@ -2,10 +2,11 @@ import ast
 import sys
 
 import web3
-from eth_account import Account
-from eth_account.datastructures import SignedTransaction
+from sdk.celo_account import Account
+from sdk.celo_account.datastructures import SignedTransaction
 from hexbytes import HexBytes
 from web3 import Web3
+from sdk.contracts.GasPriceMinimumWrapper import GasPriceMinimum
 
 
 class Wallet:
@@ -28,8 +29,8 @@ class Wallet:
         acc = Account()
         self.active_account = acc.from_key(priv_key)
         self.__accounts.update({self.active_account.address: self.active_account})
-        self.gas_price_contract = gas_price_contract
-        self._fee_currency = None  # TODO: by default set to Celo token ?
+        self._gas_price_contract = gas_price_contract
+        self._fee_currency = None
         self._gateway_fee_recipient = None
         self._gateway_fee = None
         self._gas_price = None
@@ -59,6 +60,10 @@ class Wallet:
     @property
     def accounts(self) -> dict:
         return self.__accounts
+    
+    @property
+    def gas_price_contract(self) -> GasPriceMinimum:
+        return self._gas_price_contract
 
     @gas_price.setter
     def gas_price(self, new_gas_price: int):
@@ -96,6 +101,12 @@ class Wallet:
             raise TypeError("Incorrect new account type")
         self.__accounts.update({new_acc.address: new_acc})
         self.active_account = new_acc
+    
+    @gas_price_contract.setter
+    def gas_price_contract(self, gas_price_wrapper: GasPriceMinimum):
+        if type(gas_price_wrapper) != GasPriceMinimum:
+            raise TypeError("Incorrect GasPrice wrapper contract")
+        self._gas_price_contract = gas_price_wrapper
 
     def add_new_key(self, priv_key: bytes):
         acc = Account()
@@ -126,8 +137,8 @@ class Wallet:
             if self._fee_currency:
                 gas = gas if gas else self._gas
                 gas_price = self._gas_price if self._gas_price else self.get_network_gas_price()
-                base_rows = {'gasPrice': gas_price, 'nonce': nonce, 'gas': gas,
-                             'from': self.active_account.address, 'feeCurrency': self._fee_currency}
+                base_rows = {'nonce': nonce, 'gasPrice': gas_price, 'gas': gas,
+                             'feeCurrency': self._fee_currency, 'from': self.active_account.address}
             else:
                 raise ValueError(
                     "Can't construct transaction without fee currency, set fee currency please")
@@ -231,8 +242,7 @@ class Wallet:
             if not self.gas_price_contract:
                 raise ValueError(
                     "Set GasPriceMinimum wrapper to the wallet to get network gas price")
-            # TODO: change here to call ContractWrapper function
-            gas_price = self.gas_price_contract.functions.gasPriceMinimum().call()
+            gas_price = self.gas_price_contract.get_price_minimum()
             return gas_price
         except:
             raise Exception(
