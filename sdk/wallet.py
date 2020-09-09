@@ -6,7 +6,6 @@ from sdk.celo_account import Account
 from sdk.celo_account.datastructures import SignedTransaction
 from hexbytes import HexBytes
 from web3 import Web3
-from sdk.contracts.GasPriceMinimumWrapper import GasPriceMinimum
 
 
 class Wallet:
@@ -62,7 +61,7 @@ class Wallet:
         return self.__accounts
     
     @property
-    def gas_price_contract(self) -> GasPriceMinimum:
+    def gas_price_contract(self) -> 'GasPriceMinimum':
         return self._gas_price_contract
 
     @gas_price.setter
@@ -103,9 +102,7 @@ class Wallet:
         self.active_account = new_acc
     
     @gas_price_contract.setter
-    def gas_price_contract(self, gas_price_wrapper: GasPriceMinimum):
-        if type(gas_price_wrapper) != GasPriceMinimum:
-            raise TypeError("Incorrect GasPrice wrapper contract")
+    def gas_price_contract(self, gas_price_wrapper: 'GasPriceMinimum'):
         self._gas_price_contract = gas_price_wrapper
 
     def add_new_key(self, priv_key: bytes):

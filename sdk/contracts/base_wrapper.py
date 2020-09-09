@@ -1,7 +1,7 @@
 import sys
 from importlib import import_module
 
-from sdk.contracts import *
+from sdk.contracts.GasPriceMinimumWrapper import GasPriceMinimum
 from sdk.registry import Registry
 from sdk.wallet import Wallet
 
@@ -21,7 +21,7 @@ class BaseWrapper:
     def get_gas_price_contract(self, w3: Web3, registry: Registry):
         try:
             gas_contract_data = registry.load_contract_by_name('GasPriceMinimum')
-            contract = GasPriceMinimumWrapper.GasPriceMinimum(w3, gas_contract_data['address'], gas_contract_data['abi'])
+            contract = GasPriceMinimum(w3, gas_contract_data['address'], gas_contract_data['abi'])
             return contract
         except:
             raise Exception(f"Error while create GasPriceMinimum wrapper contract:\n{sys.exc_info()[1]}")
@@ -67,7 +67,8 @@ class BaseWrapper:
         """
         contract_obj = self.contracts.get(contract_name)
         if contract_obj:
-            raise Exception("Such a contract already created")
+            return
+            # raise Exception("Such a contract already created")
         contract_data = self.registry.load_contract_by_name(contract_name)
 
         self.create_contract(
@@ -85,7 +86,7 @@ class BaseWrapper:
                 f"sdk.contracts.{contract_name}Wrapper")
             contract_obj = getattr(contract_module, contract_name)
             contract = contract_obj(
-                self.web3, contract_address, abi, self.wallet)
+                self.web3, self.registry, contract_address, abi, self.wallet)
 
             self.contracts[contract_name] = contract
         except ModuleNotFoundError:

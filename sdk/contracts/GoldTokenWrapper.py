@@ -1,11 +1,12 @@
 import sys
 
-from sdk.wallet import Wallet
+from sdk.contracts.base_wrapper import BaseWrapper
+from sdk.registry import Registry
 
 from web3 import Web3
 
 
-class GoldToken:
+class GoldToken(BaseWrapper):
     """
     Class which wrapp all the methods of GoldToken smart contract
 
@@ -19,7 +20,8 @@ class GoldToken:
         wallet: Wallet
             Wallet object to sign transactions
     """
-    def __init__(self, web3: Web3, address: str, abi: list, wallet: Wallet = None):
+    def __init__(self, web3: Web3, registry: Registry, address: str, abi: list, wallet: 'Wallet' = None):
+        super().__init__(web3, registry, wallet=wallet)
         self.web3 = web3
         self.address = address
         self._contract = self.web3.eth.contract(self.address, abi=abi)
