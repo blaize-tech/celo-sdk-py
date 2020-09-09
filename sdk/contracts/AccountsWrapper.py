@@ -16,6 +16,8 @@ class Accounts(BaseWrapper):
     Attributes:
         web3: Web3
             Web3 object
+        registry: Registry
+            Registry object
         address: str
             Contract's address
         abi: list
