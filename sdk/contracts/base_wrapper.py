@@ -16,6 +16,7 @@ class BaseWrapper:
             self.registry.set_registry()
         self.wallet = wallet
         self.contracts = {}
+        self.null_address = '0x0000000000000000000000000000000000000000'
 
     @classmethod
     def get_gas_price_contract(self, w3: Web3, registry: Registry):
