@@ -4,6 +4,20 @@ from web3 import Web3
 
 
 class GasPriceMinimum:
+    """
+    Stores the gas price minimum
+
+    Attributes:
+        web3: Web3
+            Web3 object
+        address: str
+            Contract's address
+        abi: list
+            Contract's ABI
+        wallet: Wallet
+            Wallet object to sign transactions
+    """
+
     def __init__(self, web3: Web3, address: str, abi: list, wallet: 'Wallet' = None):
         self.web3 = web3
         self.address = address
