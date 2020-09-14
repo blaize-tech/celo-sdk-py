@@ -33,3 +33,9 @@ class Validators(BaseWrapper):
     
     def get_epoch_number_of_block(self, block: int) -> int:
         pass
+
+    def get_first_block_number_for_epoch(self, epoch_number: int) -> int:
+        pass
+
+    def get_last_block_number_for_epoch(self, epoch_number: int) -> int:
+        pass
