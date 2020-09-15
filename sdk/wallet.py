@@ -118,7 +118,7 @@ class Wallet:
             raise KeyError("There is no account with such an address in wallet")
         self.active_account = self.__accounts[account_address]
 
-    def construct_transaction(self, contract_method: web3._utils.datatypes, gas: int = None) -> dict:
+    def construct_transaction(self, contract_method: web3._utils.datatypes, gas: int = None, value: int = 0) -> dict:
         """
         Takes contract method call object and builds transaction dict with it
 
@@ -147,6 +147,10 @@ class Wallet:
                 base_rows['gatewayFee'] = self._gateway_fee
 
             tx = contract_method.buildTransaction(base_rows)
+
+            if value:
+                tx['value'] = value
+
             return tx
         except:
             raise Exception(
@@ -187,7 +191,7 @@ class Wallet:
             raise Exception(
                 f"Error while sign transaction: {sys.exc_info()[1]}")
 
-    def send_transaction(self, contract_method: web3._utils.datatypes, gas: int = None) -> str:
+    def send_transaction(self, contract_method: web3._utils.datatypes, gas: int = None, value: int = 0) -> str:
         """
         Takes contract method call object, call method to build transaction and push it to the blockchain
 
