@@ -112,8 +112,8 @@ class LockedGold(BaseWrapper):
 
         res = []
         remaining_to_relock = value
-        for ind, withd in enumerate(pending_withdrawals):
-            value_to_relock = min(withd['value'], remaining_to_relock)
+        for ind in reversed(range(len(pending_withdrawals))):
+            value_to_relock = min(pending_withdrawals[ind]['value'], remaining_to_relock)
             if value_to_relock > 0:
                 remaining_to_relock -= value_to_relock
                 res.append(self.relock_single(ind, value_to_relock))
