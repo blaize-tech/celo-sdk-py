@@ -63,7 +63,7 @@ class LockedGold(BaseWrapper):
         """
         func_call = self._contract.functions.lock()
 
-        return self.__wallet.send_transaction(func_call, value=value)
+        return self.__wallet.send_transaction(func_call, parameters={'value': value})
 
     def unlock(self, value: int) -> str:
         """

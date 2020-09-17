@@ -118,38 +118,37 @@ class Wallet:
             raise KeyError("There is no account with such an address in wallet")
         self.active_account = self.__accounts[account_address]
 
-    def construct_transaction(self, contract_method: web3._utils.datatypes, gas: int = None, value: int = 0) -> dict:
+    def construct_transaction(self, contract_method: web3._utils.datatypes, parameters: dict = None) -> dict:
         """
         Takes contract method call object and builds transaction dict with it
 
         Parameters:
             contract_method: web3._utils.datatypes
-            gas: int (optional)
+            parameters: dict (optional)
         Returns:
             constructed transaction in dict
         """
         try:
-            nonce = self.web3.eth.getTransactionCount(self.active_account.address)
-
-            if self._fee_currency:
-                gas = gas if gas else self._gas
-                gas_price = self._gas_price if self._gas_price else self.get_network_gas_price()
-                base_rows = {'nonce': nonce, 'gasPrice': gas_price, 'gas': gas,
-                             'feeCurrency': self._fee_currency, 'from': self.active_account.address}
-            else:
+            if not self._fee_currency:
                 raise ValueError(
                     "Can't construct transaction without fee currency, set fee currency please")
+
+            nonce = self.web3.eth.getTransactionCount(self.active_account.address)
+            gas_price = self._gas_price if self._gas_price else self.get_network_gas_price()
+            base_rows = {'nonce': nonce, 'gasPrice': gas_price, 'gas': self._gas,
+                            'feeCurrency': self._fee_currency, 'from': self.active_account.address}
 
             if self._gateway_fee_recipient:
                 base_rows['gatewayFeeRecipient'] = self._gateway_fee_recipient
 
             if self._gateway_fee:
                 base_rows['gatewayFee'] = self._gateway_fee
+            
+            if parameters:
+                for k, item in parameters.items():
+                    base_rows[k] = item
 
             tx = contract_method.buildTransaction(base_rows)
-
-            if value:
-                tx['value'] = value
 
             return tx
         except:
@@ -191,19 +190,19 @@ class Wallet:
             raise Exception(
                 f"Error while sign transaction: {sys.exc_info()[1]}")
 
-    def send_transaction(self, contract_method: web3._utils.datatypes, gas: int = None, value: int = 0) -> str:
+    def send_transaction(self, contract_method: web3._utils.datatypes, parameters: dict = None) -> str:
         """
         Takes contract method call object, call method to build transaction and push it to the blockchain
 
         Parameters:
             contract_method: web3._utils.datatypes
                 object of contract method call
-            gas: int (optional)
+            parameters: dict (optional)
         Returns:
             hash of sended transaction
         """
         try:
-            tx = self.construct_transaction(contract_method, gas=gas)
+            tx = self.construct_transaction(contract_method, parameters)
             signed_tx = self.sign_transaction(tx)
             return self.push_tx_to_blockchain(signed_tx.rawTransaction)
         except ValueError as e:
@@ -212,7 +211,7 @@ class Wallet:
                 print(
                     "Got error about too low gas value. Increase gas value and try to send it again.")
                 gas = gas + self.gas_increase_step if gas else self._gas + self.gas_increase_step
-                self.send_transaction(contract_method, gas)
+                self.send_transaction(contract_method, parameters={'gas': gas})
             else:
                 raise ValueError(error_message)
         except:
