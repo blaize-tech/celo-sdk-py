@@ -278,7 +278,7 @@ class Accounts(BaseWrapper):
         signature = signer_acc.sign_message(message)
         return signature
 
-    def get_name(self, account: str) -> str:
+    def get_name(self, account: str, block_number: int = None) -> str:
         """
         Returns the set name for the account
 
@@ -286,7 +286,10 @@ class Accounts(BaseWrapper):
             account: str
                 Account address
         """
-        return self._contract.functions.getName(account).call()
+        if block_number != None:
+            return self._contract.functions.getName(account).call(block_number=block_number)
+        else:
+            return self._contract.functions.getName(account).call()
 
     def get_data_encryption_key(self, account: str) -> str:
         """
