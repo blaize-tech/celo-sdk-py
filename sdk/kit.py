@@ -82,8 +82,52 @@ class Kit:
         acct = w3.eth.account.create()
         return acct.privateKey
 
-    def get_total_balance(self):
-        pass
+    def get_total_balance(self, address: str) -> dict:
+        celo_token = self.base_wrapper.create_and_get_contract_by_name('GoldToken')
+        stable_token = self.base_wrapper.create_and_get_contract_by_name('StableToken')
+        locked_celo = self.base_wrapper.create_and_get_contract_by_name('LockedGold')
+
+        gold_balance = celo_token.balance_of(address)
+        locked_balance = locked_celo.get_account_total_locked_gold(address)
+        dollar_balance = stable_token.balance_of(address)
+        pending = 0
+        try:
+            pending = locked_celo.get_pending_withdrawals_total_value(address)
+        except:
+            pass # Just means that it's not an account
+        return {
+            'CELO': gold_balance,
+            'locked_CELO': locked_balance,
+            'cUSD': dollar_balance,
+            'pending': pending
+        }
 
     def get_network_config(self):
-        pass
+        token1 = self.base_wrapper.registry.registry.functions.getAddressForString('GoldToken')
+        token2 = self.base_wrapper.registry.registry.functions.getAddressForString('StableToken')
+
+        exchange_contract = self.base_wrapper.create_and_get_contract_by_name('Exchange')
+        election_contract = self.base_wrapper.create_and_get_contract_by_name('Election')
+        attestation_contract = self.base_wrapper.create_and_get_contract_by_name('Attestation')
+        governance_contract = self.base_wrapper.create_and_get_contract_by_name('Governance')
+        locked_gold_contract = self.base_wrapper.create_and_get_contract_by_name('LockedGold')
+        sorted_oracles_contract = self.base_wrapper.create_and_get_contract_by_name('SortedOracles')
+        gas_price_minimum_contract = self.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum')
+        reserve_contract = self.base_wrapper.create_and_get_contract_by_name('Reserve')
+        stable_token_contract = self.base_wrapper.create_and_get_contract_by_name('StableToken')
+        validators_contract = self.base_wrapper.create_and_get_contract_by_name('Validators')
+        downtime_slasher_contract = self.base_wrapper.create_and_get_contract_by_name('DowntimeSlasher')
+
+        return {
+            'exchange': exchange_contract.get_config(),
+            'election': election_contract.get_config(),
+            'attestation': attestation_contract.get_config([token1, token2]),
+            'governance': governance_contract.get_config(),
+            'locked_gold': locked_gold_contract.get_config(),
+            'sorted_oracles': sorted_oracles_contract.get_config(),
+            'gas_price_minimum': gas_price_minimum_contract.get_config(),
+            'reserve': reserve_contract.get_config(),
+            'stable_token': stable_token_contract.get_config(),
+            'validators': validators_contract.get_config(),
+            'downtime_slasher': downtime_slasher_contract.get_config()
+        }
