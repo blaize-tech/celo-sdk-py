@@ -2,6 +2,7 @@ import sys
 
 from web3 import Web3
 from web3.auto import w3
+from solcx import compile_source
 
 from sdk.contracts.base_wrapper import BaseWrapper
 from sdk.registry import Registry
@@ -131,3 +132,9 @@ class Kit:
             'validators': validators_contract.get_config(),
             'downtime_slasher': downtime_slasher_contract.get_config()
         }
+
+    def deploy_contract(self, contract_abi: list = None, bytecode: str = None) -> str:
+
+        prepared_tx = self.w3.eth.contract(abi=contract_abi, bytecode=bytecode).constructor()
+
+        return self.__wallet.send_transaction(prepared_tx)
