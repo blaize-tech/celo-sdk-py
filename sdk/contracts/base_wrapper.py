@@ -69,7 +69,6 @@ class BaseWrapper:
         contract_obj = self.contracts.get(contract_name)
         if contract_obj:
             return
-            # raise Exception("Such a contract already created")
         contract_data = self.registry.load_contract_by_name(contract_name)
 
         self.create_contract(

@@ -216,7 +216,6 @@ class Accounts(BaseWrapper):
             signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s)
         return self.__wallet.send_transaction(func_call)
 
-    # TODO need to implement Validators smart contract to try to test this method
     def authorize_validator_signer(self, signer: str, proof_of_signing_key_possession: SignedMessage) -> str:
         """
         Authorizes an address to sign consensus messages on behalf of the account

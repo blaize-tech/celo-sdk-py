@@ -532,21 +532,21 @@ class Governance(BaseWrapper):
     def _with_upvote_revoked(self, upvoter: str, queue_p: List[dict] = []) -> dict:
         upvoter_record = self.get_upvote_record(upvoter)
         index, queue = self._get_queue_index(
-            upvoter_record['proposal_id'], queue_p)
+            upvoter_record['proposal_id'], queue_p).values()
         queue[index]['upvotes'] = queue[index]['upvotes'] - \
             upvoter_record['upvotes']
 
         return {'queue': self.sorted_queue(queue), 'upvote_record': upvoter_record}
 
     def _with_upvote_applied(self, upvoter: str, proposal_id: int, queue_p: List[dict] = []) -> list:
-        index, queue = self._get_queue_index(proposal_id, queue_p)
+        index, queue = self._get_queue_index(proposal_id, queue_p).values()
         weight = self.get_vote_weight(upvoter)
         queue[index]['upvotes'] = queue[index]['upvotes'] + weight
 
         return self.sorted_queue(queue)
 
     def _lesser_and_greater_after_revoke(self, upvoter: str) -> dict:
-        queue, upvote_record = self._with_upvote_revoked(upvoter)
+        queue, upvote_record = self._with_upvote_revoked(upvoter).values()
 
         return self._lesser_and_greater(upvote_record['proposal_id'], queue)
 

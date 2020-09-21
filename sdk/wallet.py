@@ -35,6 +35,7 @@ class Wallet:
         self._gas_price = None
         self._gas = 10000000
         self.gas_increase_step = 1000000
+        self._threshold_gas_value = 100000000
 
     @property
     def fee_currency(self) -> str:
@@ -55,6 +56,10 @@ class Wallet:
     @property
     def gas(self) -> int:
         return self._gas
+    
+    @property
+    def threshold_gas_value(self) -> int:
+        return self._threshold_gas_value
 
     @property
     def accounts(self) -> dict:
@@ -93,6 +98,12 @@ class Wallet:
         if type(new_gas) != int:
             raise TypeError("Incorrect new gas type data")
         self._gas = new_gas
+    
+    @threshold_gas_value.setter
+    def threshold_gas_value(self, new_threshold_gas_value: int):
+        if type(new_threshold_gas_value) != int:
+            raise TypeError("Incorrect new threshold gas value type data")
+        self._threshold_gas_value = new_threshold_gas_value
 
     @accounts.setter
     def accounts(self, new_acc: Account):
@@ -208,9 +219,9 @@ class Wallet:
         except ValueError as e:
             error_message = ast.literal_eval(str(e))['message']
             if error_message == 'intrinsic gas too low':
-                print(
-                    "Got error about too low gas value. Increase gas value and try to send it again.")
                 gas = gas + self.gas_increase_step if gas else self._gas + self.gas_increase_step
+                if gas > self.threshold_gas_value:
+                    raise Exception(f"Transaction requires a lot of gas use({gas}), if you want to send transaction set higher gas value and increase threshold gas value")
                 self.send_transaction(contract_method, parameters={'gas': gas})
             else:
                 raise ValueError(error_message)
@@ -229,7 +240,7 @@ class Wallet:
             hash of sent transaction
         """
         tx_hash = self.web3.eth.sendRawTransaction(signed_raw_tx)
-        return tx_hash.hex()
+        return tx_hash
 
     def get_network_gas_price(self) -> int:
         """

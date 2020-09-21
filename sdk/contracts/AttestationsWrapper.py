@@ -44,7 +44,6 @@ class Attestations(BaseWrapper):
             'valid': 'Valid'
         }
 
-    # TODO: test this method
     def parse_get_completable_attestations(self, response: list) -> list:
         metadata_urls = attestations_utils.parse_solidity_string_array(
             response[2], response[3])  # TODO: check response[3] data type
@@ -101,10 +100,6 @@ class Attestations(BaseWrapper):
         attestation_expity_block = self.attestation_expiry_blocks()
         current_block = self.web3.eth.getBlock().number
         return current_block >= attestation_request_block_number + attestation_expity_block
-
-    def wait_for_selecting_issuers(self):
-        # TODO: think whether we need to implement it such as it will not work the same as in JS
-        pass
 
     def get_attestation_issuers(self, identifier: str, account: str) -> list:
         """
