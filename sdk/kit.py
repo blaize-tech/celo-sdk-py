@@ -2,7 +2,6 @@ import sys
 
 from web3 import Web3
 from web3.auto import w3
-from solcx import compile_source
 
 from sdk.contracts.base_wrapper import BaseWrapper
 from sdk.registry import Registry
