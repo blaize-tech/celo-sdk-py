@@ -36,7 +36,7 @@ class Registry:
             raise FileNotFoundError(
                 "File with contracts ABIs registry_contracts.json not found")
 
-    def load_contract_by_name(self, contract_name: str) -> dict:
+    def load_contract_by_name(self, contract_name: str, contract_address: str = None) -> dict:
         """
         Get contract address from Registry contract by name
 
@@ -47,7 +47,7 @@ class Registry:
         """
         try:
             account_contract_address = self.registry.functions.getAddressForString(
-                contract_name).call()
+                contract_name).call() if contract_address == None else contract_address
             with open('sdk/registry_contracts.json') as json_file:
                 contracts_data = json.load(json_file)
                 return {"address": account_contract_address, "abi": contracts_data[contract_name]["ABI"]}
