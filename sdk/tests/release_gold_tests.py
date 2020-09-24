@@ -17,4 +17,4 @@ class TestReleaseGoldWrapper(unittest.TestCase):
         self.kit.wallet_add_new_key = test_data.pk1
     
     def test_get_release_schedule(self):
-        print(self.release_gold_wrapper.get_release_schedule())
+        print(self.release_gold_wrapper._contract.functions.releaseSchedule())
