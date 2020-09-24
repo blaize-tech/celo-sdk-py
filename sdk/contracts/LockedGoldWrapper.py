@@ -49,7 +49,7 @@ class LockedGold(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    def lock(self, value: int) -> str:
+    def lock(self, parameters: dict = None) -> str:
         """
         Locks gold to be used for voting
 
@@ -63,7 +63,7 @@ class LockedGold(BaseWrapper):
         """
         func_call = self._contract.functions.lock()
 
-        return self.__wallet.send_transaction(func_call, parameters={'value': value})
+        return self.__wallet.send_transaction(func_call, parameters=parameters)
 
     def unlock(self, value: int) -> str:
         """

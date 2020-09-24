@@ -40,8 +40,8 @@ class BaseWrapper:
             raise Exception(
                 f"Error occurs while create all the contracts objecst:\n{sys.exc_info()[1]}")
 
-    def create_and_get_contract_by_name(self, contract_name: str) -> 'ContractWrapperObject':
-        self.create_contract_by_name(contract_name)
+    def create_and_get_contract_by_name(self, contract_name: str, contract_address: str = None) -> 'ContractWrapperObject':
+        self.create_contract_by_name(contract_name, contract_address)
         return self.get_contract_by_name(contract_name)
 
     def get_contract_by_name(self, contract_name: str) -> 'ContractWrapperObject':
@@ -59,7 +59,7 @@ class BaseWrapper:
                 "Such a contract was not created yet, call create_contract_by_name() or create_all_the_contracts() first")
         return contract_obj
 
-    def create_contract_by_name(self, contract_name: str):
+    def create_contract_by_name(self, contract_name: str, contract_address: str = None):
         """
         Creates contract wrapper object by contract name and saves to the dictionary
 
@@ -69,7 +69,7 @@ class BaseWrapper:
         contract_obj = self.contracts.get(contract_name)
         if contract_obj:
             return
-        contract_data = self.registry.load_contract_by_name(contract_name)
+        contract_data = self.registry.load_contract_by_name(contract_name, contract_address)
 
         self.create_contract(
             contract_name, contract_data['address'], contract_data['abi'])

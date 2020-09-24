@@ -336,11 +336,11 @@ class Governance(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    def propose(self, values: List[int], destinations: List[str], data: bytes, data_lengths: List[int], description_url: str) -> int:
+    def propose(self, values: List[int], destinations: List[str], data: bytes, data_lengths: List[int], description_url: str, parameters: dict = None) -> int:
         func_call = self._contract.functions.propose(
             values, destinations, data, data_lengths, description_url)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
     def proposal_exists(self, proposal_id: int) -> bool:
         """
@@ -559,7 +559,7 @@ class Governance(BaseWrapper):
 
         return self._lesser_and_greater(proposal_id, upvote_queue)
 
-    def upvote(self, proposal_id: int, upvoter: str) -> str:
+    def upvote(self, proposal_id: int, upvoter: str, parameters: dict = None) -> str:
         """
         Applies provided upvoter's upvote to given proposal
 
@@ -578,9 +578,9 @@ class Governance(BaseWrapper):
         func_call = self._contract.functions.upvote(
             proposal_id, lesser_id, greater_id)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
-    def revoke_upvote(self, upvoter: str) -> str:
+    def revoke_upvote(self, upvoter: str, parameters: dict = None) -> str:
         """
         Revokes provided upvoter's upvote
 
@@ -593,7 +593,7 @@ class Governance(BaseWrapper):
         func_call = self._contract.functions.revokeUpvote(
             lesser_id, greater_id)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
     def approve(self, proposal_id: int) -> str:
         """
@@ -613,7 +613,7 @@ class Governance(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    def vote(self, proposal_id: int, vote: str) -> str:
+    def vote(self, proposal_id: int, vote: str, parameters: dict = None) -> str:
         """
         Applies `sender`'s vote choice to a given proposal
 
@@ -632,7 +632,7 @@ class Governance(BaseWrapper):
         func_call = self._contract.functions.vote(
             proposal_id, proposal_index, vote_num)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
     def get_vote_value(self, proposal_id: int, voter: str) -> str:
         """

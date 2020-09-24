@@ -33,7 +33,7 @@ class MultiSig(BaseWrapper):
         self._contract = self.web3.eth.contract(self.address, abi=abi)
         self.__wallet = wallet
 
-    def submit_or_confirm_transaction(self, destination: str, tx_data: str, value: str = '0') -> str:
+    def submit_or_confirm_transaction(self, destination: str, tx_data: str, value: str = '0', parameters: dict = None) -> str:
         """
         Allows an owner to submit and confirm a transaction.
         If an unexecuted transaction matching `tx_object` exists on the multisig, adds a confirmation to that tx ID.
@@ -59,12 +59,12 @@ class MultiSig(BaseWrapper):
             if transaction[2] == data and transaction[0] == destination and transaction[1] == value and not transaction[3]:
                 func_call = self._contract.functions.confirmTransaction(
                     tx_id + 1)
-                return self.__wallet.send_transaction(func_call)
+                return self.__wallet.send_transaction(func_call, parameters)
 
         func_call = self._contract.functions.submitTransaction(
             destination, value, tx_data)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
     def is_owner(self, owner: str) -> bool:
         return self._contract.functions.isOwner(owner).call()

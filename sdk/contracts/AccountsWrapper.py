@@ -33,7 +33,7 @@ class Accounts(BaseWrapper):
         self._contract = self.web3.eth.contract(self.address, abi=abi)
         self.__wallet = wallet
 
-    def create_account(self) -> str:
+    def create_account(self, parameters: dict = None) -> str:
         """
         Creates an account
 
@@ -41,7 +41,7 @@ class Accounts(BaseWrapper):
             Transaction hash
         """
         func_call = self._contract.functions.createAccount()
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters=parameters)
 
     def get_attestation_signer(self, account: str) -> str:
         """
@@ -137,7 +137,7 @@ class Accounts(BaseWrapper):
         Returns:
             Returns `true` if account exists. Returns `false` otherwise
         """
-        return self._contract.functions.isAccount().call()
+        return self._contract.functions.isAccount(account).call()
 
     def is_signer(self, address: str) -> bool:
         """

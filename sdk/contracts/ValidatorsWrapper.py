@@ -32,7 +32,7 @@ class Validators(BaseWrapper):
         self._contract = self.web3.eth.contract(self.address, abi=abi)
         self.__wallet = wallet
 
-    def set_next_commission_update(self, commission: int) -> str:
+    def set_next_commission_update(self, commission: int, parameters: dict = None) -> str:
         """
         Queues an update to a validator group's commission
 
@@ -47,9 +47,9 @@ class Validators(BaseWrapper):
         func_call = self._contract.functions.setNextCommissionUpdate(
             commission)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
-    def update_commission(self) -> str:
+    def update_commission(self, parameters: dict = None) -> str:
         """
         Updates a validator group's commission based on the previously queued update
 
@@ -59,7 +59,7 @@ class Validators(BaseWrapper):
         """
         func_call = self._contract.functions.updateCommission()
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
     def get_validator_locked_gold_requirements(self) -> dict:
         """
@@ -477,7 +477,7 @@ class Validators(BaseWrapper):
             raise Exception(
                 f"{validator_address} is not a registered validator")
 
-    def register_validator_group(self, commission: int) -> str:
+    def register_validator_group(self, commission: int, parameters: dict = None) -> str:
         """
         Registers a validator group with no member validators
         Fails if the account is already a validator or validator group
@@ -492,7 +492,7 @@ class Validators(BaseWrapper):
         """
         func_call = self._contract.functions.registerValidatorGroup(commission)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
     def deregister_validator_group(self, validator_group_address: str) -> str:
         """
@@ -515,7 +515,7 @@ class Validators(BaseWrapper):
             raise Exception(
                 f"{validator_group_address} is not a registered validator")
 
-    def affiliate(self, group: str) -> str:
+    def affiliate(self, group: str, parameters: dict = None) -> str:
         """
         Affiliates a validator with a group, allowing it to be added as a member
         De-affiliates with the previously affiliated group if present
@@ -529,7 +529,7 @@ class Validators(BaseWrapper):
         """
         func_call = self._contract.functions.affiliate(group)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameters)
 
     def deaffiliate(self) -> str:
         func_call = self._contract.functions.deaffiliate()
@@ -564,7 +564,7 @@ class Validators(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    def add_member(self, group: str, validator: str) -> str:
+    def add_member(self, group: str, validator: str, parameters: dict = None) -> str:
         """
         Adds a member to the end of a validator group's list of members
         Fails if `validator` has not set their affiliation to this account
@@ -587,11 +587,11 @@ class Validators(BaseWrapper):
             func_call = self._contract.functions.addFirstMember(
                 validator, lesser_greater['lesser'], lesser_greater['greater'])
 
-            return self.__wallet.send_transaction(func_call)
+            return self.__wallet.send_transaction(func_call, parameters)
         else:
             func_call = self._contract.functions.addMember(validator)
 
-            return self.__wallet.send_transaction(func_call)
+            return self.__wallet.send_transaction(func_call, parameters)
 
     def remove_member(self, validator: str) -> str:
         """
@@ -609,7 +609,7 @@ class Validators(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    def reorder_member(self, group_addr: str, validator: str, new_index: int) -> str:
+    def reorder_member(self, group_addr: str, validator: str, new_index: int, parameters: dict = None) -> str:
         """
         Reorders a member within a validator group
         Fails if `validator` is not a member of the account's validator group
@@ -648,7 +648,7 @@ class Validators(BaseWrapper):
             func_call = self._contract.functions.reorderMember(
                 validator, next_member, prev_member)
 
-            return self.__wallet.send_transaction(func_call)
+            return self.__wallet.send_transaction(func_call, parameters)
         except ValueError:
             raise Exception(
                 f"ValidatorGroup {group_addr} does not include ${validator}")

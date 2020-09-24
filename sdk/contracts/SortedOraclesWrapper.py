@@ -125,7 +125,7 @@ class SortedOracles(BaseWrapper):
 
         return self._contract.functions.isOldestReportExpired(token_address).call()
     
-    def remove_expired_reports(self, token: str, num_reports: int = None) -> str:
+    def remove_expired_reports(self, token: str, num_reports: int = None, parameteres: dict = None) -> str:
         """
         Removes expired reports, if any exist
 
@@ -148,7 +148,7 @@ class SortedOracles(BaseWrapper):
         
         func_call = self._contract.functions.removeExpiredReports(token_address, num_reports)
 
-        return self.__wallet.send_transaction(func_call)
+        return self.__wallet.send_transaction(func_call, parameteres)
     
     def report(self, token: str, value: int, oracle_address: str) -> str:
         """
