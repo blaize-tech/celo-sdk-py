@@ -14,29 +14,33 @@ class TestLockedGoldWrapper(unittest.TestCase):
         self.kit = Kit('https://alfajores-forno.celo-testnet.org')
         self.locked_gold_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
             'LockedGold')
+        self.accounts_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
+            'Accounts')
+        self.kit.wallet.sign_with_provider = False
+        for _, v in test_data.deriv_pks.items():
+            self.kit.wallet_add_new_key = v
+        self.accounts = self.kit.w3.eth.accounts
+
         self.kit.wallet_add_new_key = test_data.pk1
-        self.kit.wallet_add_new_key = test_data.pk2
+
+        # for account in self.accounts[:4]:
+        #     self.kit.w3.eth.defaultAccount = account
+        #     self.accounts_wrapper.create_account()
 
         self.value = 120938732980
-    
-    def test_alock_gold(self):
+
+    def test_lock_gold(self):
         self.assertTrue(self.locked_gold_wrapper.lock({'value': self.value}))
-        time.sleep(1)
-    
-    def test_bunlock_gold(self):
+
+    def test_unlock_gold(self):
         self.assertTrue(self.locked_gold_wrapper.unlock(self.value))
-        time.sleep(1)
-    
-    def test_crelock_gold(self):
-        accounts = list(self.kit.wallet.accounts.values())[1:]
+
+    def test_relock_gold(self):
 
         self.assertTrue(self.locked_gold_wrapper.lock({'value': self.value}))
-        time.sleep(2)
         self.assertTrue(self.locked_gold_wrapper.unlock(self.value))
-        time.sleep(2)
         self.assertTrue(self.locked_gold_wrapper.unlock(self.value))
-        time.sleep(2)
         self.assertTrue(self.locked_gold_wrapper.unlock(self.value))
-        time.sleep(2)
 
-        self.assertTrue(self.locked_gold_wrapper.relock(accounts[1].address, self.value * 2.5))
+        self.assertTrue(self.locked_gold_wrapper.relock(
+            self.accounts[1], self.value * 2.5))

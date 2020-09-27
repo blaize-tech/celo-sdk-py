@@ -11,15 +11,20 @@ class TestReserveWrapper(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.kit = Kit('https://alfajores-forno.celo-testnet.org')
+        self.kit = Kit('http://localhost:8544')
         self.reserve_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
-            'Reserve')
-        self.kit.wallet_add_new_key = test_data.pk1
-        self.kit.wallet_add_new_key = test_data.pk2
+            'Reserve')        
+        self.kit.wallet.sign_with_provider = True
+        for _, v in test_data.deriv_pks.items():
+            self.kit.wallet_add_new_key = v
 
-        accounts = list(self.kit.wallet.accounts.values())
-        self.other_reserve_address = accounts[0]
-        self.other_spender = accounts[1]
+        accounts = self.kit.w3.eth.accounts
+
+        self.kit.w3.eth.defaultAccount = accounts[0]
+        self.kit.wallet_change_account = accounts[0]
+
+        self.other_reserve_address = accounts[2]
+        self.other_spender = accounts[3]
 
         self.spenders = self.reserve_wrapper.get_spenders()
         # assumes that the multisig is the most recent spender in the spenders array
@@ -30,27 +35,37 @@ class TestReserveWrapper(unittest.TestCase):
         self.assertTrue(self.reserve_wrapper.is_spender(self.reserve_spender_multisig_wrapper.address))
     
     def test_two_spenders_req_confirm_gold(self):
+        self.reserve_wrapper.add_spender(self.kit.w3.eth.accounts[0])
+
         from_block = self.kit.w3.eth.blockNumber
-        value_transfer = 1
-        tx = self.reserve_wrapper.transfer_gold(self.other_reserve_address.address, value_transfer)
-        tx_abi = self.reserve_wrapper._contract.encodeABI(fn_name="transferGold", args=[self.other_reserve_address.address, value_transfer])
+        value_transfer = 10000000
+        tx = self.reserve_wrapper.transfer_gold(self.other_reserve_address, value_transfer)
+        # time.sleep(10)
+        tx_abi = self.reserve_wrapper._contract.encodeABI(fn_name="transferGold", args=[self.other_reserve_address, value_transfer])
         multisig_tx = self.reserve_spender_multisig_wrapper.submit_or_confirm_transaction(self.reserve_wrapper.address, tx_abi)
-        time.sleep(3)
+        # time.sleep(10)
         submission_event = self.reserve_spender_multisig_wrapper._contract.events.Submission.getLogs(fromBlock=from_block)
         confirmation_event = self.reserve_spender_multisig_wrapper._contract.events.Confirmation.getLogs(fromBlock=from_block)
         execution_event = self.reserve_spender_multisig_wrapper._contract.events.Execution.getLogs(fromBlock=from_block)
+        print(f"submission_event:\n{submission_event}")
+        print(f"confirmation_event:\n{confirmation_event}")
+        print(f"execution_event:\n{execution_event}")
 
         self.assertTrue(submission_event)
         self.assertTrue(confirmation_event)
         self.assertFalse(execution_event)
 
         from_block = self.kit.w3.eth.blockNumber
-        tx2 = self.reserve_wrapper.transfer_gold(self.other_reserve_address.address, value_transfer)
+        tx2 = self.reserve_wrapper.transfer_gold(self.other_reserve_address, value_transfer)
+        # time.sleep(10)
         multisig_tx = self.reserve_spender_multisig_wrapper.submit_or_confirm_transaction(self.reserve_wrapper.address, tx_abi)
-        time.sleep(3)
+        # time.sleep(10)
         submission_event = self.reserve_spender_multisig_wrapper._contract.events.Submission.getLogs(fromBlock=from_block)
         confirmation_event = self.reserve_spender_multisig_wrapper._contract.events.Confirmation.getLogs(fromBlock=from_block)
         execution_event = self.reserve_spender_multisig_wrapper._contract.events.Execution.getLogs(fromBlock=from_block)
+        print(f"submission_event:\n{submission_event}")
+        print(f"confirmation_event:\n{confirmation_event}")
+        print(f"execution_event:\n{execution_event}")
 
         self.assertFalse(submission_event)
         self.assertTrue(confirmation_event)
@@ -58,7 +73,8 @@ class TestReserveWrapper(unittest.TestCase):
     
     @unittest.expectedFailure
     def test_does_not_transfer_if_not_spender(self):
-        value_transfer = 1
-        tx = self.reserve_wrapper.transfer_gold(self.other_reserve_address.address, value_transfer)
-        tx_abi = self.reserve_wrapper._contract.encodeABI(fn_name="transferGold", args=[self.other_reserve_address.address, value_transfer])
-        multisig_tx = self.reserve_spender_multisig_wrapper.submit_or_confirm_transaction(self.reserve_wrapper.address, tx_abi, parameters = {'from': self.other_spender.address})
+        value_transfer = 10000000
+        tx = self.reserve_wrapper.transfer_gold(self.other_reserve_address, value_transfer)
+        # time.sleep(10)
+        tx_abi = self.reserve_wrapper._contract.encodeABI(fn_name="transferGold", args=[self.other_reserve_address, value_transfer])
+        multisig_tx = self.reserve_spender_multisig_wrapper.submit_or_confirm_transaction(self.reserve_wrapper.address, tx_abi, parameters = {'from': self.other_spender})

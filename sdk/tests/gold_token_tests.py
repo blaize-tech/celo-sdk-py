@@ -11,10 +11,11 @@ class TestGoldTokenWrapper(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.kit = Kit('https://alfajores-forno.celo-testnet.org')
+        self.kit = Kit('http://localhost:8545')
         self.gold_token_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
             'GoldToken')
-        self.kit.wallet_add_new_key = test_data.pk2
+        self.kit.wallet_add_new_key = test_data.deriv_pk_1
+        self.kit.wallet_add_new_key = test_data.deriv_pk_2
 
     def test_name(self):
         name = self.gold_token_wrapper.name()

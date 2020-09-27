@@ -119,7 +119,6 @@ class TestValidatorsWrapper(unittest.TestCase):
         members = self.validators_wrapper.get_validator_group(group_account)['members']
 
         self.assertEqual(members, [validator1, validator2])
-        # HER
 
         self.validators_wrapper.reorder_member(group_account, validator2, 0, {'from': group_account})
 
