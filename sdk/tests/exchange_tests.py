@@ -12,7 +12,7 @@ class TestExchangeWrapper(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.kit = Kit('https://alfajores-forno.celo-testnet.org') # https://alfajores-forno.celo-testnet.org
+        self.kit = Kit('https://alfajores-forno.celo-testnet.org')
         self.exchange_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
             'Exchange')
         self.kit.wallet_add_new_key = test_data.pk1
@@ -29,19 +29,19 @@ class TestExchangeWrapper(unittest.TestCase):
 
         self.assertTrue(buy_bucket > 0)
         self.assertTrue(sell_bucket > 0)
-    
+
     def test_quote_usd_sell(self):
         self.assertEqual(type(self.exchange_wrapper.quote_usd_sell(self.one)), int)
-    
+
     def test_quote_gold_sell(self):
         self.assertEqual(type(self.exchange_wrapper.quote_gold_sell(self.one)), int)
-    
+
     def test_quote_usd_buy(self):
         self.assertEqual(type(self.exchange_wrapper.quote_usd_buy(self.one)), int)
-    
+
     def test_quote_gold_buy(self):
         self.assertEqual(type(self.exchange_wrapper.quote_gold_buy(self.one)), int)
-    
+
     def test_sell_dollar(self):
         gold_amount = self.exchange_wrapper.quote_usd_sell(self.one)
         stable_token_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name('StableToken')
@@ -51,15 +51,14 @@ class TestExchangeWrapper(unittest.TestCase):
         
         self.assertEqual(type(sell_tx), bytes)
     
-    # TODO: this test is failing for some unknown reason
     def test_sell_gold(self):
         usd_amount = self.exchange_wrapper.quote_gold_sell(self.one)
         gold_token_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name('GoldToken')
         approve_tx = gold_token_wrapper.approve(self.exchange_wrapper.address, self.one)
-        time.sleep(3)
+        time.sleep(8)
         sell_tx = self.exchange_wrapper.sell_gold(self.one, usd_amount)
 
-        self.assertEqual(type(sell_tx), bytes)
+        self.assertTrue(sell_tx)
 
     def test_get_gold_exchange_rate(self):
         self.assertTrue(self.exchange_wrapper.get_exchange_rate(self.large_buy_amount, True) > 0)

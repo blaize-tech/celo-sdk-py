@@ -739,6 +739,69 @@
             "constant": false,
             "inputs": [
               {
+                "name": "authorized",
+                "type": "address"
+              },
+              {
+                "name": "v",
+                "type": "uint8"
+              },
+              {
+                "name": "r",
+                "type": "bytes32"
+              },
+              {
+                "name": "s",
+                "type": "bytes32"
+              }
+            ],
+            "name": "getSigner",
+            "outputs": [{
+              "name": "",
+              "type": "address"
+            }],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+          {
+            "constant": false,
+            "inputs": [
+              {
+                "name": "signer",
+                "type": "address"
+              }
+            ],
+            "name": "getHashAddress",
+            "outputs": [{
+              "name": "",
+              "type": "bytes32"
+            }],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+          {
+            "constant": false,
+            "inputs": [
+              {
+                "name": "signer",
+                "type": "address"
+              }
+            ],
+            "name": "getAbiEnc",
+            "outputs": [{
+              "name": "",
+              "type": "bytes"
+            }],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+          {
+            "constant": false,
+            "inputs": [
+              {
                 "name": "signer",
                 "type": "address"
               },
