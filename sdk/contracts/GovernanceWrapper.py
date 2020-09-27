@@ -336,9 +336,23 @@ class Governance(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    def propose(self, values: List[int], destinations: List[str], data: bytes, data_lengths: List[int], description_url: str, parameters: dict = None) -> int:
-        func_call = self._contract.functions.propose(
-            values, destinations, data, data_lengths, description_url)
+    def proposal_to_params(self, values: List[int], description_url: str) -> list:
+        data = []
+        for el in values:
+            addr = el['input'].lstrip('0x')
+            data.append([elem.encode("hex") for elem in addr])
+        return [
+            [el['value'] for el in values],
+            [el['to'] for el in values if 'to' in el],
+            self.web3.toBytes('0x'+bytes(data).hex()),
+            [len(el) for el in data],
+            description_url
+        ]
+
+    def propose(self, values: List[int], description_url: str, parameters: dict = None) -> int:
+        data = self.proposal_to_params(values, description_url)
+
+        func_call = self._contract.functions.propose(data[0], data[1], data[2], data[3], data[4])
 
         return self.__wallet.send_transaction(func_call, parameters)
 

@@ -110,7 +110,7 @@ class SortedOracles(BaseWrapper):
         """
         return self._contract.functions.reportExpirySeconds().call()
     
-    def is_oldest_report_expired(self, token: str) -> List[bool, str]:
+    def is_oldest_report_expired(self, token: str) -> list:
         """
         Checks if the oldest report for a given token is expired
 

@@ -6,6 +6,8 @@ from sdk.celo_account import Account
 from sdk.celo_account.datastructures import SignedTransaction
 from hexbytes import HexBytes
 from web3 import Web3
+import eth_keys
+from sdk.utils import hash_utils
 
 
 class Wallet:
@@ -27,7 +29,9 @@ class Wallet:
         self.__accounts = {}
         acc = Account()
         self.active_account = acc.from_key(priv_key)
-        self.__accounts.update({self.active_account.address: self.active_account})
+        self.sign_with_provider = False
+        self.__accounts.update(
+            {self.active_account.address: self.active_account})
         self._gas_price_contract = gas_price_contract
         self._fee_currency = None
         self._gateway_fee_recipient = None
@@ -56,7 +60,7 @@ class Wallet:
     @property
     def gas(self) -> int:
         return self._gas
-    
+
     @property
     def threshold_gas_value(self) -> int:
         return self._threshold_gas_value
@@ -64,7 +68,7 @@ class Wallet:
     @property
     def accounts(self) -> dict:
         return self.__accounts
-    
+
     @property
     def gas_price_contract(self) -> 'GasPriceMinimum':
         return self._gas_price_contract
@@ -98,7 +102,7 @@ class Wallet:
         if type(new_gas) != int:
             raise TypeError("Incorrect new gas type data")
         self._gas = new_gas
-    
+
     @threshold_gas_value.setter
     def threshold_gas_value(self, new_threshold_gas_value: int):
         if type(new_threshold_gas_value) != int:
@@ -111,7 +115,7 @@ class Wallet:
             raise TypeError("Incorrect new account type")
         self.__accounts.update({new_acc.address: new_acc})
         self.active_account = new_acc
-    
+
     @gas_price_contract.setter
     def gas_price_contract(self, gas_price_wrapper: 'GasPriceMinimum'):
         self._gas_price_contract = gas_price_wrapper
@@ -119,14 +123,16 @@ class Wallet:
     def add_new_key(self, priv_key: bytes):
         acc = Account()
         self.active_account = acc.from_key(priv_key)
-        self.__accounts.update({self.active_account.address: self.active_account})
+        self.__accounts.update(
+            {self.active_account.address: self.active_account})
 
     def remove_account(self, account_address: str):
         del self.__accounts[account_address]
 
     def change_account(self, account_address: str):
         if account_address not in self.__accounts:
-            raise KeyError("There is no account with such an address in wallet")
+            raise KeyError(
+                "There is no account with such an address in wallet")
         self.active_account = self.__accounts[account_address]
 
     def construct_transaction(self, contract_method: web3._utils.datatypes, parameters: dict = None) -> dict:
@@ -144,17 +150,18 @@ class Wallet:
                 raise ValueError(
                     "Can't construct transaction without fee currency, set fee currency please")
 
-            nonce = self.web3.eth.getTransactionCount(self.active_account.address)
+            nonce = self.web3.eth.getTransactionCount(
+                self.active_account.address)
             gas_price = self._gas_price if self._gas_price else self.get_network_gas_price()
             base_rows = {'nonce': nonce, 'gasPrice': gas_price, 'gas': self._gas,
-                            'feeCurrency': self._fee_currency, 'from': self.active_account.address}
+                         'feeCurrency': self._fee_currency, 'from': self.active_account.address}
 
             if self._gateway_fee_recipient:
                 base_rows['gatewayFeeRecipient'] = self._gateway_fee_recipient
 
             if self._gateway_fee:
                 base_rows['gatewayFee'] = self._gateway_fee
-            
+
             if parameters:
                 for k, item in parameters.items():
                     base_rows[k] = item
@@ -166,24 +173,47 @@ class Wallet:
             raise Exception(
                 f"Error while construct transaction: {sys.exc_info()[1]}")
 
-    def sign_transaction(self, tx: dict) -> SignedTransaction:
+    def sign_transaction(self, tx: dict) -> 'RawSignedTransaction':
         """
-        Takes transaction dict, signs it and sends to the blockchain
+        Takes transaction dict, signs it and returns raw signed transaciton
 
         Parameters:
             tx: dict
                 transaction data in dict
         Returns:
-            signed transaction object
+            signed raw transaction
         """
         try:
             signed_tx = self.active_account.sign_transaction(tx)
-            return signed_tx
+            print(f"Signed tx localy: {signed_tx}")
+            return signed_tx.rawTransaction
         except:
             raise Exception(
                 f"Error while sign transaction: {sys.exc_info()[1]}")
 
-    def construct_and_sign_transaction(self, contract_method: web3._utils.datatypes) -> SignedTransaction:
+    def sign_message(self, message: 'bytes str') -> 'Signature':
+        signer_priv_key = eth_keys.keys.PrivateKey(self.active_account._private_key)
+        signature = signer_priv_key.sign_msg(message)
+        return signature
+
+    def sign_transaction_with_provider(self, tx: dict) -> 'RawSignedTransaction':
+        """
+        Takes transaction dict, signs it and returns raw signed transaciton
+
+        Parameters:
+            tx: dict
+                transaction data in dict
+        Returns:
+            signed raw transaction
+        """
+        try:
+            signed_tx = self.web3.eth.signTransaction(tx)
+            return signed_tx.raw
+        except:
+            raise Exception(
+                f"Error while sign transaction: {sys.exc_info()[1]}")
+
+    def construct_and_sign_transaction(self, contract_method: web3._utils.datatypes) -> 'RawSignedTransaction':
         """
         Takes contract method call object, call method to build transaction and return signed transaction
 
@@ -191,11 +221,14 @@ class Wallet:
             contract_method: web3._utils.datatypes
                 object of contract method call
         Returns:
-            signed transaction object
+            signed raw transaction
         """
         try:
             tx = self.construct_transaction(contract_method)
-            signed_tx = self.sign_transaction(tx)
+            if self.sign_with_provider:
+                signed_tx = self.sign_transaction_with_provider(tx)
+            else:
+                signed_tx = self.sign_transaction(tx)
             return signed_tx
         except:
             raise Exception(
@@ -214,14 +247,19 @@ class Wallet:
         """
         try:
             tx = self.construct_transaction(contract_method, parameters)
-            signed_tx = self.sign_transaction(tx)
-            return self.push_tx_to_blockchain(signed_tx.rawTransaction)
+            if self.sign_with_provider:
+                signed_tx = self.sign_transaction_with_provider(tx)
+            else:
+                signed_tx = self.sign_transaction(tx)
+
+            return self.push_tx_to_blockchain(signed_tx)
         except ValueError as e:
             error_message = ast.literal_eval(str(e))['message']
             if error_message == 'intrinsic gas too low':
                 gas = gas + self.gas_increase_step if gas else self._gas + self.gas_increase_step
                 if gas > self.threshold_gas_value:
-                    raise Exception(f"Transaction requires a lot of gas use({gas}), if you want to send transaction set higher gas value and increase threshold gas value")
+                    raise Exception(
+                        f"Transaction requires a lot of gas use({gas}), if you want to send transaction set higher gas value and increase threshold gas value")
                 self.send_transaction(contract_method, parameters={'gas': gas})
             else:
                 raise ValueError(error_message)

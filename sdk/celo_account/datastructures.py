@@ -30,6 +30,7 @@ class SignedMessage(NamedTuple):
     r: int
     s: int
     v: int
+    vrs: list
     signature: HexBytes
 
     def __getitem__(self, index):

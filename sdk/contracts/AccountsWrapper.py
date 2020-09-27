@@ -197,7 +197,7 @@ class Accounts(BaseWrapper):
             Transaction hash
         """
         func_call = self._contract.functions.authorizeAttestationSigner(
-            signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s)
+            signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s))
         return self.__wallet.send_transaction(func_call)
 
     def authorize_vote_signer(self, signer: str, proof_of_signing_key_possession: SignedMessage) -> str:
@@ -213,7 +213,7 @@ class Accounts(BaseWrapper):
             Transaction hash
         """
         func_call = self._contract.functions.authorizeVoteSigner(
-            signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s)
+            signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s))
         return self.__wallet.send_transaction(func_call)
 
     def authorize_validator_signer(self, signer: str, proof_of_signing_key_possession: SignedMessage) -> str:
@@ -237,11 +237,11 @@ class Accounts(BaseWrapper):
             pub_key = PublicKey.recover_from_msg_hash(
                 prefixed_message_hash, proof_of_signing_key_possession).to_hex()
             func_call = self._contract.functions.authorizeValidatorSignerWithPublicKey(
-                signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s, pub_key)
+                signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s), pub_key)
             return self.__wallet.send_transaction(func_call)
         else:
             func_call = self._contract.functions.authorizeValidatorSigner(
-                signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s)
+                signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s))
             return self.__wallet.send_transaction(func_call)
 
     def authorize_validator_signer_and_bls(self, signer: str, proof_of_signing_key_possession: SignedMessage, bls_public_key: str, bls_pop: str) -> str:
@@ -267,8 +267,8 @@ class Accounts(BaseWrapper):
         pub_key = PublicKey.recover_from_msg_hash(
             prefixed_message_hash, proof_of_signing_key_possession).to_hex()
 
-        func_call = self._contract.functions.authorizeValidatorSignerWithKeys(signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r,
-                                                                              proof_of_signing_key_possession.s, pub_key, hash_utils.is_leading_with_0x(bls_public_key), hash_utils.is_leading_with_0x(bls_pop))
+        func_call = self._contract.functions.authorizeValidatorSignerWithKeys(signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r),
+                     self.web3.toBytes(proof_of_signing_key_possession.s), pub_key, hash_utils.is_leading_with_0x(bls_public_key), hash_utils.is_leading_with_0x(bls_pop))
         return self.__wallet.send_transaction(func_call)
 
     def generate_proof_of_key_possession(self, account: str, signer: str) -> SignedMessage:
@@ -352,7 +352,7 @@ class Accounts(BaseWrapper):
         """
         if proof_of_possession:
             func_call = self._contract.functions.setAccount(
-                name, data_encryption_key, wallet_address, proof_of_possession.v, proof_of_possession.r, proof_of_possession.s)
+                name, data_encryption_key, wallet_address, proof_of_possession.v, self.web3.toBytes(proof_of_possession.r), self.web3.toBytes(proof_of_possession.s))
         else:
             func_call = self._contract.functions.setAccount(
                 name, data_encryption_key, wallet_address, '0x0', '0x0', '0x0')
@@ -370,7 +370,7 @@ class Accounts(BaseWrapper):
         """
         func_call = self._contract.functions.setName(name)
         return self.__wallet.send_transaction(func_call)
-    
+
     def set_metadata_url(self, url: str) -> str:
         """
         Sets the metadataURL for the account
@@ -397,7 +397,9 @@ class Accounts(BaseWrapper):
             Transaction hash
         """
         if proof_of_possession:
-            func_call = self._contract.functions.setWalletAddress(wallet_address, proof_of_possession.v, proof_of_possession.r, proof_of_possession.s)
+            func_call = self._contract.functions.setWalletAddress(
+                wallet_address, proof_of_possession.v, self.web3.toBytes(proof_of_possession.r), self.web3.toBytes(proof_of_possession.s))
         else:
-            func_call = self._contract.functions.setWalletAddress(wallet_address, '0x0', '0x0', '0x0')
+            func_call = self._contract.functions.setWalletAddress(
+                wallet_address, 0, self.web3.toBytes('0x0'), self.web3.toBytes('0x0'))
         return self.__wallet.send_transaction(func_call)

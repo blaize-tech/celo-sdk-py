@@ -41,35 +41,12 @@ def linked_list_changes(sorted_list: list, change_list: list):
     
     return {'lessers': lessers, 'greaters': greaters, 'sorted_list': sorted_list}
 
-if __name__ == "__main__":
-    # lst = [
-    #     { 'address': 'address 1', 'value': 7 },
-    #     { 'address': 'address 2', 'value': 5 },
-    #     { 'address': 'address 3', 'value': 4 },
-    #     { 'address': 'address 4', 'value': 3 },
-    #     { 'address': 'address 5', 'value': 2 },
-    #     { 'address': 'address 6', 'value': 2 },
-    #     { 'address': 'address 7', 'value': 1 },
-    # ]
-    # changes = [{'address': 'address 3', 'value': 2}]
-    # expected = {
-    #     greaters: ['address 6'],
-    #     lessers: ['address 7'],
-    #   }
+def int_to_bytes(x: int) -> bytes:
+    return x.to_bytes((x.bit_length() + 7) // 8, 'big')
 
-    lst = [
-        { 'address': 'address 1', 'value': 7 },
-        { 'address': 'address 2', 'value': 5 },
-        { 'address': 'address 3', 'value': 4 },
-        { 'address': 'address 4', 'value': 3 },
-        { 'address': 'address 5', 'value': 2 },
-        { 'address': 'address 6', 'value': 2 },
-        { 'address': 'address 7', 'value': 1 },
-    ]
-    changes = [{'address': 'address 3', 'value': 2}, {'address': 'address 2', 'value': 0}]
-    #expected = {
-    #     greaters: ['address 6', 'address 7'],
-    #     lessers: ['address 7', NULL_ADDRESS],
-    #   }
-
-    print(linked_list_changes(lst, changes))
+def string_to_bytes32(data):
+    if len(data) > 32:
+        myBytes32 = data[:32]
+    else:
+        myBytes32 = data.ljust(32, '0')
+    return bytes(myBytes32, 'utf-8')

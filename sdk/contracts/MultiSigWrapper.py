@@ -33,7 +33,7 @@ class MultiSig(BaseWrapper):
         self._contract = self.web3.eth.contract(self.address, abi=abi)
         self.__wallet = wallet
 
-    def submit_or_confirm_transaction(self, destination: str, tx_data: str, value: str = '0', parameters: dict = None) -> str:
+    def submit_or_confirm_transaction(self, destination: str, tx_data: str, value: int = 0, parameters: dict = None) -> str:
         """
         Allows an owner to submit and confirm a transaction.
         If an unexecuted transaction matching `tx_object` exists on the multisig, adds a confirmation to that tx ID.

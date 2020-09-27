@@ -587,6 +587,7 @@ class Account(object):
             r=r,
             s=s,
             v=v,
+            vrs=[v, r, s],
             signature=HexBytes(eth_signature_bytes),
         )
 
