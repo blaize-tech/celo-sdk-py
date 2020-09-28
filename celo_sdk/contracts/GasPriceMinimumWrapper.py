@@ -37,4 +37,12 @@ class GasPriceMinimum:
         return self._contract.functions.adjustmentSpeed().call()
 
     def get_config(self) -> dict:
-        pass
+        gas_price_minimum = self.get_price_minimum()
+        target_density = self.target_density()
+        adjustment_speed = self.adjustment_speed()
+
+        return {
+            'gas_price_minimum': gas_price_minimum,
+            'target_density': target_density,
+            'adjustment_speed': adjustment_speed
+        }
