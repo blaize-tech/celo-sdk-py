@@ -19,7 +19,7 @@ class Registry:
         Return addresses and ABIs of all the known contracts
         """
         try:
-            with open('sdk/registry_contracts.json') as json_file:
+            with open('celo_sdk/registry_contracts.json') as json_file:
                 contracts_data = json.load(json_file)
                 result = []
                 for k, v in contracts_data.items():
@@ -48,7 +48,7 @@ class Registry:
         try:
             account_contract_address = self.registry.functions.getAddressForString(
                 contract_name).call() if contract_address == None else contract_address
-            with open('sdk/registry_contracts.json') as json_file:
+            with open('celo_sdk/registry_contracts.json') as json_file:
                 contracts_data = json.load(json_file)
                 return {"address": account_contract_address, "abi": contracts_data[contract_name]["ABI"]}
         except KeyError:
@@ -63,7 +63,7 @@ class Registry:
         Set Registry contract object
         """
         try:
-            with open('sdk/registry_contracts.json') as json_file:
+            with open('celo_sdk/registry_contracts.json') as json_file:
                 contracts_data = json.load(json_file)
                 registry = self.web3.eth.contract(
                     contracts_data["Registry"]["Address"], abi=contracts_data["Registry"]["ABI"])

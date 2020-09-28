@@ -83,7 +83,7 @@ class BaseWrapper:
             if contract_obj:
                 raise Exception("Such a contract already created")
             contract_module = import_module(
-                f"sdk.contracts.{contract_name}Wrapper")
+                f"celo_sdk.contracts.{contract_name}Wrapper")
             contract_obj = getattr(contract_module, contract_name)
             contract = contract_obj(
                 self.web3, self.registry, contract_address, abi, self.wallet)
