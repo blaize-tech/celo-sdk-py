@@ -6,7 +6,6 @@ from celo_sdk.registry import Registry
 from web3 import Web3
 
 
-# TODO: test when other called SC wrappers will be written and callable
 class Exchange(BaseWrapper):
     """
     Contract that allows to exchange StableToken for GoldToken and vice versa

@@ -13,21 +13,28 @@ class TestSortedOraclesWrapper(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.kit = Kit('http://localhost:8545')
+        self.kit = Kit('http://localhost:8544')
         self.sorted_oracles_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
             'SortedOracles')
+        self.kit.w3.eth.defaultAccount = test_data.oracle_address
         self.kit.wallet_add_new_key = test_data.oracle
-        self.accounts = list(self.kit.wallet.accounts.values())
+        self.kit.wallet.sign_with_provider = True
+        self.accounts = self.kit.w3.eth.accounts
+        for _, v in test_data.deriv_pks.items():
+            self.kit.wallet_add_new_key = v
 
-        with open('sdk/tests/dev_net_conf.json') as file:
+        self.kit.w3.eth.defaultAccount = self.accounts[0]
+        self.kit.wallet_change_account = self.accounts[0]
+
+        with open('celo_sdk/tests/dev_net_conf.json') as file:
             data = json.load(file)
             self.net_config = data
 
         self.stable_token_oracles = self.net_config['stableToken']['oracles']
         self.oracle_address = test_data.oracle_address
 
-        self.stacle_token_address = self.kit.base_wrapper.create_and_get_contract_by_name('StableToken').address
-        self.non_oracle_address = self.accounts[0].address
+        self.oracle_token_address = self.kit.base_wrapper.create_and_get_contract_by_name('StableToken').address
+        self.non_oracle_address = self.accounts[0]
 
     def report_as_oracles(self, oracles: list, rates: list = None):
         local_rates = []
@@ -44,8 +51,6 @@ class TestSortedOraclesWrapper(unittest.TestCase):
     def setup_expired_and_not_expired_reports(self, expired_oracles: list):
         expiry_seconds = self.sorted_oracles_wrapper.report_expiry_seconds()
         self.report_as_oracles(expired_oracles)
-        print(f"Sleep on {expiry_seconds + 5} seconds")
-        time.sleep(expiry_seconds + 5)
         fresh_oracles = [el for el in self.stable_token_oracles if el not in expired_oracles]
         self.report_as_oracles(fresh_oracles)
     
@@ -54,7 +59,6 @@ class TestSortedOraclesWrapper(unittest.TestCase):
         initial_rates = self.sorted_oracles_wrapper.get_rates('StableToken')
 
         tx = self.sorted_oracles_wrapper.report('StableToken', value, self.oracle_address)
-        time.sleep(3)
 
         resulting_rates = self.sorted_oracles_wrapper.get_rates('StableToken')
 
@@ -69,7 +73,8 @@ class TestSortedOraclesWrapper(unittest.TestCase):
         expected_greater_key = self.stable_token_oracles[2]
 
         tx = self.sorted_oracles_wrapper.report('StableToken', value, self.oracle_address)
-        # TODO: check transaction arguments
+
+        self.assertTrue(tx)
 
     def test_inserts_new_record_in_the_right_plase(self):
         rates = [15, 20, 17]
@@ -78,7 +83,6 @@ class TestSortedOraclesWrapper(unittest.TestCase):
         expected_oracle_order = [self.stable_token_oracles[1], self.stable_token_oracles[2], self.oracle_address, self.stable_token_oracles[0]]
 
         tx = self.sorted_oracles_wrapper.report('StableToken', value, self.oracle_address)
-        time.sleep(3)
 
         resulting_rates = self.sorted_oracles_wrapper.get_rates('StableToken')
 
@@ -107,7 +111,9 @@ class TestSortedOraclesWrapper(unittest.TestCase):
         self.setup_expired_and_not_expired_reports(expired_oracles)
         initial_report_count = self.sorted_oracles_wrapper.num_rates('StableToken')
         
-        tx = self.sorted_oracles_wrapper.remove_expired_reports('StableToken', 1, {'from': self.oracle_address})
+        self.kit.w3.eth.defaultAccount = self.oracle_address
+        self.kit.wallet_change_account = self.oracle_address
+        tx = self.sorted_oracles_wrapper.remove_expired_reports('StableToken', 1)
 
         self.assertEqual(self.sorted_oracles_wrapper.num_rates('StableToken'), initial_report_count - 1)
 
@@ -117,7 +123,9 @@ class TestSortedOraclesWrapper(unittest.TestCase):
         initial_report_count = self.sorted_oracles_wrapper.num_rates('StableToken')
 
         to_remove = len(expired_oracles) + 1
-        tx = self.sorted_oracles_wrapper.remove_expired_reports('StableToken', to_remove, {'from': self.oracle_address})
+        self.kit.w3.eth.defaultAccount = self.oracle_address
+        self.kit.wallet_change_account = self.oracle_address
+        tx = self.sorted_oracles_wrapper.remove_expired_reports('StableToken', to_remove)
 
         self.assertEqual(self.sorted_oracles_wrapper.num_rates('StableToken'), initial_report_count - len(expired_oracles))
 
@@ -129,7 +137,9 @@ class TestSortedOraclesWrapper(unittest.TestCase):
         self.report_as_oracles(self.stable_token_oracles)
 
         initial_report_count = self.sorted_oracles_wrapper.num_rates('StableToken')
-        tx = self.sorted_oracles_wrapper.remove_expired_reports('StableToken', 1, {'from': self.oracle_address})
+        self.kit.w3.eth.defaultAccount = self.oracle_address
+        self.kit.wallet_change_account = self.oracle_address
+        tx = self.sorted_oracles_wrapper.remove_expired_reports('StableToken', 1)
 
         self.assertEqual(self.sorted_oracles_wrapper.num_rates('StableToken'), initial_report_count)
 
@@ -196,4 +206,5 @@ class TestSortedOraclesWrapper(unittest.TestCase):
 
     def test_report_stable_token(self):
         tx = self.sorted_oracles_wrapper.report_stable_token(14, self.oracle_address)
-        # TODO: check arguments
+
+        self.assertTrue(tx)

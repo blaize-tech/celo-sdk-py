@@ -7,7 +7,6 @@ from celo_sdk.registry import Registry
 from web3 import Web3
 
 
-# TODO: test when other called SC wrappers will be written and callable
 class SortedOracles(BaseWrapper):
     """
     Currency price oracle contract
@@ -170,7 +169,7 @@ class SortedOracles(BaseWrapper):
 
         func_call = self._contract.functions.report(token_address, value, lesser_greater['lesser_key'], lesser_greater['greater_key'])
 
-        return self.__wallet.send_transaction(func_call, parameters={'from': oracle_address})
+        return self.__wallet.send_transaction(func_call)
     
     def report_stable_token(self, value: int, oracle_address: str) -> str:
         """

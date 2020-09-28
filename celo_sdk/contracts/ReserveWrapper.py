@@ -9,7 +9,6 @@ from celo_sdk.contracts.base_wrapper import BaseWrapper
 from celo_sdk.registry import Registry
 
 
-# TODO: test when other called SC wrappers will be written and callable
 class Reserve(BaseWrapper):
     """
     Contract for handling reserve for stable currencies

@@ -175,9 +175,9 @@ class TestAccountsWrapper(unittest.TestCase):
 
         self.accounts_wrapper.create_account()
 
-        self.setup_validator(account.address)
+        self.setup_validator(account)
 
-        sig = self.get_parsed_signature_of_address(account.address, signer.address)
+        sig = self.get_parsed_signature_of_address(account, signer)
 
         print(self.accounts_wrapper.authorize_validator_signer_and_bls(signer.address, sig, new_bls_public_key, new_bls_pop))
 
@@ -185,7 +185,7 @@ class TestAccountsWrapper(unittest.TestCase):
         accounts = list(self.kit.wallet.accounts.values())[1:]
 
         self.accounts_wrapper.create_account()
-        print(self.accounts_wrapper.set_wallet_address(accounts[0].address))
+        print(self.accounts_wrapper.set_wallet_address(accounts[0]))
 
     def test_set_wallet_address_to_different_address(self):
         accounts = list(self.kit.wallet.accounts.values())[1:]
@@ -195,16 +195,16 @@ class TestAccountsWrapper(unittest.TestCase):
 
         self.accounts_wrapper.create_account()
 
-        signature = self.accounts_wrapper.generate_proof_of_key_possession(account.address, signer.address)
+        signature = self.accounts_wrapper.generate_proof_of_key_possession(account, signer)
 
-        print(self.accounts_wrapper.set_wallet_address(signer.address, signature))
+        print(self.accounts_wrapper.set_wallet_address(signer, signature))
 
     def test_set_wallet_address_without_signature(self):
         """
         Should fail
         """
         accounts = list(self.kit.wallet.accounts.values())[1:]
-        print(self.accounts_wrapper.set_wallet_address(accounts[1].address))
+        print(self.accounts_wrapper.set_wallet_address(accounts[1]))
 
     def register_account_with_locked_gold(self, account: str):
         if not self.accounts_wrapper.is_account(account):

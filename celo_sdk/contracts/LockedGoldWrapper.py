@@ -9,7 +9,6 @@ from celo_sdk.registry import Registry
 from celo_sdk.utils import utils
 
 
-# TODO: test when other called SC wrappers will be written and callable
 class LockedGold(BaseWrapper):
     """
     Contract for handling deposits needed for voting

@@ -46,7 +46,7 @@ class Attestations(BaseWrapper):
 
     def parse_get_completable_attestations(self, response: list) -> list:
         metadata_urls = attestations_utils.parse_solidity_string_array(
-            response[2], response[3])  # TODO: check response[3] data type
+            response[2], response[3])
 
         return [{'block_number': el[0], 'issuer': el[1], 'metadata_url': el[2]} for el in attestations_utils.zip3(response[0], response[1], metadata_urls)]
 
@@ -228,7 +228,6 @@ class Attestations(BaseWrapper):
 
         return [attest['issuer'] for attest in results if not attest['is_valid']]
 
-    # TODO: test how signature is reconstracting
     def complete(self, identifier: str, account: str, issuer: str, code: str) -> str:
         """
         Completes an attestation with the corresponding code
@@ -262,7 +261,6 @@ class Attestations(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    # TODO: test how signature is reconstracting and signer address
     def find_matching_issuer(self, identifier: str, account: str, code: str, issuers: list) -> str:
         """
         Given a list of issuers, finds the matching issuer for a given code
@@ -371,7 +369,6 @@ class Attestations(BaseWrapper):
         func_call = self._contract.functions.selectIssuers()
         return self.__wallet.send_transaction(func_call)
 
-    # TODO: test request to the service
     def reveal_phone_number_to_issuer(self, phone_number: str, account: str, issuer: str, service_url: str, pepper: str = None, sms_retriver_app_sig: str = None) -> dict:
         body = {'account': account,
                 'phoneNumber': phone_number,
@@ -412,7 +409,6 @@ class Attestations(BaseWrapper):
 
         return result != self.null_address
 
-    # TODO: test with real data and requests to the third patry services
     def get_attestation_service_status(self, validator: dict) -> dict:
         """
         Gets the relevant attestation service status for a validator

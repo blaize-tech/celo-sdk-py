@@ -8,7 +8,6 @@ from celo_sdk.contracts.base_wrapper import BaseWrapper
 from celo_sdk.registry import Registry
 
 
-# TODO: test when other called SC wrappers will be written and callable
 class Governance(BaseWrapper):
     """
     Contract managing voting for governance proposals
@@ -539,7 +538,6 @@ class Governance(BaseWrapper):
     def _sort_func(self, e):
         return e['proposal_id']
 
-    # TODO: check if the order is correct
     def sorted_queue(self, queue: List[dict]) -> List[dict]:
         return queue.sort(key=self._sort_func)
 

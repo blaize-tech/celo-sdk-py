@@ -12,11 +12,14 @@ class TestExchangeWrapper(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.kit = Kit('https://alfajores-forno.celo-testnet.org')
+        self.kit = Kit('http://localhost:8544')
         self.exchange_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
             'Exchange')
-        self.kit.wallet_add_new_key = test_data.pk1
-        self.kit.wallet_add_new_key = test_data.pk2
+        self.kit.wallet.sign_with_provider = True
+        for _, v in test_data.deriv_pks.items():
+            self.kit.wallet_add_new_key = v
+        
+        self.accounts = self.kit.w3.eth.accounts
 
         self.one = self.kit.w3.toWei(1, 'ether')
         self.large_buy_amount = self.kit.w3.toWei(1000, 'ether')

@@ -14,14 +14,15 @@ class TestValidatorsWrapper(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.kit = Kit('https://alfajores-forno.celo-testnet.org')
+        self.kit = Kit('http://localhost:8544')
         self.validators_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
             'Validators')
-        self.kit.wallet_add_new_key = test_data.pk1
-        self.kit.wallet_add_new_key = test_data.pk2
-        self.accounts = list(self.kit.wallet.accounts.values())
+        self.kit.wallet.sign_with_provider = True
+        for _, v in test_data.deriv_pks.items():
+            self.kit.wallet_add_new_key = v
+        self.accounts = self.kit.w3.eth.accounts
 
-        with open('sdk/tests/dev_net_conf.json') as file:
+        with open('celo_sdk/tests/dev_net_conf.json') as file:
             data = json.load(file)
             self.net_config = data
 
@@ -34,15 +35,19 @@ class TestValidatorsWrapper(unittest.TestCase):
     
     def register_account_with_locked_gold(self, account: str, value: int):
         if not self.accounts_wrapper.is_account(account):
-            self.accounts_wrapper.create_account({'from': account})
-        self.locked_gold_wrapper.lock({'from': account, 'value': value})
+            self.accounts_wrapper.create_account()
+        self.locked_gold_wrapper.lock({'value': value})
     
     def setup_group(self, group_account: str, members: int = 1):
+        self.kit.w3.eth.defaultAccount = group_account
+        self.kit.wallet_change_account = group_account
         self.register_account_with_locked_gold(group_account, self.min_locked_gold_value * members)
         time.sleep(3)
-        self.validators_wrapper.register_validator_group(0.1, {'from': group_account})
+        self.validators_wrapper.register_validator_group(0.1)
     
     def setup_validator(self, validator_account: str):
+        self.kit.w3.eth.defaultAccount = validator_account
+        self.kit.wallet_change_account = validator_account
         self.register_account_with_locked_gold(validator_account, self.min_locked_gold_value)
         priv_key = keys.PrivateKey(self.kit.wallet.active_account.privateKey)
         pub_key = priv_key.public_key
@@ -67,8 +72,12 @@ class TestValidatorsWrapper(unittest.TestCase):
         validator_account = self.accounts[1]
         self.setup_group(group_account)
         self.setup_validator(validator_account)
-        self.validators_wrapper.affiliate(group_account, {'from': validator_account})
-        self.validators_wrapper.add_member(group_account, validator_account, {'from': group_account})
+        self.kit.w3.eth.defaultAccount = validator_account
+        self.kit.wallet_change_account = validator_account
+        self.validators_wrapper.affiliate(group_account)
+        self.kit.w3.eth.defaultAccount = group_account
+        self.kit.wallet_change_account = group_account
+        self.validators_wrapper.add_member(group_account, validator_account)
 
         members = self.validators_wrapper.get_validator_group(group_account)['members']
 
@@ -77,7 +86,9 @@ class TestValidatorsWrapper(unittest.TestCase):
     def test_set_next_commission_update(self):
         group_account = self.accounts[0]
         self.setup_group(group_account)
-        self.validators_wrapper.set_next_commission_update(0.2, {'from': group_account})
+        self.kit.w3.eth.defaultAccount = group_account
+        self.kit.wallet_change_account = group_account
+        self.validators_wrapper.set_next_commission_update(0.2)
         commission = self.validators_wrapper.get_validator_group(group_account)['next_commission']
 
         self.assertEqual(commission, 0.2)
@@ -85,7 +96,9 @@ class TestValidatorsWrapper(unittest.TestCase):
     def test_update_commission(self):
         group_account = self.accounts[0]
         self.setup_group(group_account)
-        self.validators_wrapper.set_next_commission_update(0.2, {'from': group_account})
+        self.kit.w3.eth.defaultAccount = group_account
+        self.kit.wallet_change_account = group_account
+        self.validators_wrapper.set_next_commission_update(0.2)
         time.sleep(6)
         self.validators_wrapper.update_commission({'from': group_account})
 
@@ -98,7 +111,9 @@ class TestValidatorsWrapper(unittest.TestCase):
         validator_account = self.accounts[1]
         self.setup_group(group_account)
         self.setup_validator(validator_account)
-        self.validators_wrapper.affiliate(group_account, {'from': validator_account})
+        self.kit.w3.eth.defaultAccount = validator_account
+        self.kit.wallet_change_account = validator_account
+        self.validators_wrapper.affiliate(group_account)
 
         group = self.validators_wrapper.get_validator_group(group_account)
 
@@ -113,14 +128,20 @@ class TestValidatorsWrapper(unittest.TestCase):
 
         for validator in [validator1, validator2]:
             self.setup_validator(validator)
-            self.validators_wrapper.affiliate(group_account, {'from': validator})
-            self.validators_wrapper.add_member(group_account, validator, {'from': group_account})
+            self.kit.w3.eth.defaultAccount = validator
+            self.kit.wallet_change_account = validator
+            self.validators_wrapper.affiliate(group_account)
+            self.kit.w3.eth.defaultAccount = group_account
+            self.kit.wallet_change_account = group_account
+            self.validators_wrapper.add_member(group_account, validator)
         
         members = self.validators_wrapper.get_validator_group(group_account)['members']
 
         self.assertEqual(members, [validator1, validator2])
 
-        self.validators_wrapper.reorder_member(group_account, validator2, 0, {'from': group_account})
+        self.kit.w3.eth.defaultAccount = group_account
+        self.kit.wallet_change_account = group_account
+        self.validators_wrapper.reorder_member(group_account, validator2, 0)
 
         members_after = self.validators_wrapper.get_validator_group(group_account)['members']
 
@@ -135,14 +156,20 @@ class TestValidatorsWrapper(unittest.TestCase):
 
         for validator in [validator1, validator2]:
             self.setup_validator(validator)
-            self.validators_wrapper.affiliate(group_account, {'from': validator})
-            self.validators_wrapper.add_member(group_account, validator, {'from': group_account})
+            self.kit.w3.eth.defaultAccount = validator
+            self.kit.wallet_change_account = validator
+            self.validators_wrapper.affiliate(group_account)
+            self.kit.w3.eth.defaultAccount = group_account
+            self.kit.wallet_change_account = group_account
+            self.validators_wrapper.add_member(group_account, validator)
         
         members = self.validators_wrapper.get_validator_group(group_account)['members']
 
         self.assertEqual(members, [validator1, validator2])
 
-        self.validators_wrapper.reorder_member(group_account, validator1, 1, {'from': group_account})
+        self.kit.w3.eth.defaultAccount = group_account
+        self.kit.wallet_change_account = group_account
+        self.validators_wrapper.reorder_member(group_account, validator1, 1)
 
         members_after = self.validators_wrapper.get_validator_group(group_account)['members']
 
@@ -157,14 +184,20 @@ class TestValidatorsWrapper(unittest.TestCase):
 
         for validator in [validator1, validator2]:
             self.setup_validator(validator)
-            self.validators_wrapper.affiliate(group_account, {'from': validator})
-            self.validators_wrapper.add_member(group_account, validator, {'from': group_account})
+            self.kit.w3.eth.defaultAccount = validator
+            self.kit.wallet_change_account = validator
+            self.validators_wrapper.affiliate(group_account)
+            self.kit.w3.eth.defaultAccount = group_account
+            self.kit.wallet_change_account = group_account
+            self.validators_wrapper.add_member(group_account, validator)
         
         members = self.validators_wrapper.get_validator_group(group_account)['members']
 
         self.assertEqual(members, [validator1, validator2])
 
-        self.validators_wrapper.reorder_member(group_account, validator2, 0, {'from': group_account})
+        self.kit.w3.eth.defaultAccount = group_account
+        self.kit.wallet_change_account = group_account
+        self.validators_wrapper.reorder_member(group_account, validator2, 0)
 
         members_after = self.validators_wrapper.get_validator_group(group_account)['members']
 

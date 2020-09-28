@@ -29,7 +29,7 @@ class TestGovernanceWrapper(unittest.TestCase):
             self.kit.wallet_add_new_key = v
         self.accounts = self.kit.w3.eth.accounts
 
-        with open('sdk/tests/dev_net_conf.json') as file:
+        with open('celo_sdk/tests/dev_net_conf.json') as file:
             data = json.load(file)
             self.exc_config = data['governance']
 
@@ -69,26 +69,26 @@ class TestGovernanceWrapper(unittest.TestCase):
                          self.exc_config['executionStageDuration'])
 
     def propose_fn(self):
-        self.governance_wrapper.propose(self.proposal, 'URL', {'value': self.min_deposit})  # TODO: change propose function as it actualy can take less parameteres
+        self.governance_wrapper.propose(self.proposal, 'URL', {'value': self.min_deposit})
     
     def upvote_fn(self, upvoter: str, should_time_travel: bool = True):
-        tx = self.governance_wrapper.upvote(self.proposal_id, upvoter, {'from': upvoter})
+        self.kit.w3.eth.defaultAccount = upvoter
+        self.kit.wallet_change_account = upvoter
+        tx = self.governance_wrapper.upvote(self.proposal_id, upvoter)
         if should_time_travel:
-            print(f"Will sleep on {self.exc_config['dequeueFrequency']}")
-            time.sleep(31)
             self.governance_wrapper.dequeue_proposals_if_ready()
     
     def approve_fn(self):
+        self.kit.w3.eth.defaultAccount = self.accounts[0]
+        self.kit.wallet_change_account = self.accounts[0]
         tx = self.governance_wrapper.approve(self.proposal_id)
         tx_abi = self.governance_wrapper._contract.encodeABI(fn_name="approve", args=[self.proposal_id])
-        multisig_tx = self.governance_approve_multisig_wrapper.submit_or_confirm_transaction(self.governance_wrapper.address, tx_abi, parameteers={'from': self.accounts[0].address})
-        print("Will sleep on 100 sec")
-        time.sleep(100)
+        multisig_tx = self.governance_approve_multisig_wrapper.submit_or_confirm_transaction(self.governance_wrapper.address, tx_abi)
     
     def vote_fn(self, voter: str):
-        tx = self.governance_wrapper.vote(self.proposal_id, 'Yes', {'from': voter})
-        print("Will sleep on 100 sec")
-        time.sleep(100)
+        self.kit.w3.eth.defaultAccount = voter
+        self.kit.wallet_change_account = voter
+        tx = self.governance_wrapper.vote(self.proposal_id, 'Yes')
     
     def test_propose(self):
         self.kit.w3.eth.defaultAccount = self.accounts[0]
@@ -103,9 +103,9 @@ class TestGovernanceWrapper(unittest.TestCase):
     
     def test_upvote(self):
         self.propose_fn()
-        self.upvote_fn(self.accounts[1].address, False)
+        self.upvote_fn(self.accounts[1], False)
 
-        vote_weight = self.governance_wrapper.get_vote_weight(self.accounts[1].address)
+        vote_weight = self.governance_wrapper.get_vote_weight(self.accounts[1])
         upvotes = self.governance_wrapper.get_upvotes(self.proposal_id)
 
         self.assertEqual(upvotes, vote_weight)
@@ -113,12 +113,15 @@ class TestGovernanceWrapper(unittest.TestCase):
     
     def test_revoke_upvote(self):
         self.propose_fn()
-        self.upvote_fn(self.accounts[1].address, False)
+        self.upvote_fn(self.accounts[1], False)
 
         before = self.governance_wrapper.get_upvotes(self.proposal_id)
-        upvote_record = self.governance_wrapper.get_upvote_record(self.accounts[1].address)
+        upvote_record = self.governance_wrapper.get_upvote_record(self.accounts[1])
 
-        tx = self.governance_wrapper.revoke_upvote(self.accounts[1].address, {'from': self.accounts[1].address})
+        self.kit.w3.eth.defaultAccount = self.accounts[1]
+        self.kit.wallet_change_account = self.accounts[1]
+
+        tx = self.governance_wrapper.revoke_upvote(self.accounts[1])
 
         after = self.governance_wrapper.get_upvotes(self.proposal_id)
 
@@ -126,7 +129,7 @@ class TestGovernanceWrapper(unittest.TestCase):
     
     def test_approve(self):
         self.propose_fn()
-        self.upvote_fn(self.accounts[1].address)
+        self.upvote_fn(self.accounts[1])
         self.approve_fn()
 
         approved = self.governance_wrapper.is_approved(self.proposal_id)
@@ -135,20 +138,20 @@ class TestGovernanceWrapper(unittest.TestCase):
     
     def test_vote(self):
         self.propose_fn()
-        self.upvote_fn(self.accounts[1].address)
+        self.upvote_fn(self.accounts[1])
         self.approve_fn()
-        self.vote_fn(self.accounts[2].address)
+        self.vote_fn(self.accounts[2])
 
-        vote_weight = self.governance_wrapper.get_vote_weight(self.accounts[2].address)
+        vote_weight = self.governance_wrapper.get_vote_weight(self.accounts[2])
         yes_votes = self.governance_wrapper.get_votes(self.proposal_id)['Yes']
 
         self.assertEqual(yes_votes, vote_weight)
     
     def test_execute(self):
         self.propose_fn()
-        self.upvote_fn(self.accounts[1].address)
+        self.upvote_fn(self.accounts[1])
         self.approve_fn()
-        self.vote_fn(self.accounts[2].address)
+        self.vote_fn(self.accounts[2])
 
         tx = self.governance_wrapper.execute(self.proposal_id)
 
@@ -158,20 +161,20 @@ class TestGovernanceWrapper(unittest.TestCase):
     
     def test_get_voter(self):
         self.propose_fn()
-        self.upvote_fn(self.accounts[1].address)
+        self.upvote_fn(self.accounts[1])
         self.approve_fn()
-        self.vote_fn(self.accounts[2].address)
+        self.vote_fn(self.accounts[2])
 
-        proposer = self.governance_wrapper.get_voter(self.accounts[0].address)
+        proposer = self.governance_wrapper.get_voter(self.accounts[0])
 
         self.assertEqual(proposer['refunded_deposits'], self.min_deposit)
 
-        upvoter = self.governance_wrapper.get_voter(self.accounts[1].address)
+        upvoter = self.governance_wrapper.get_voter(self.accounts[1])
         expected_upvote_record = {'proposal_id': self.proposal_id, 'upvotes': self.one_gold}
 
         self.assertEqual(upvoter['upvote'], expected_upvote_record)
 
-        voter = self.governance_wrapper.get_voter(self.accounts[2].address)
+        voter = self.governance_wrapper.get_voter(self.accounts[2])
         expected_vote_record = {'proposal_id': self.proposal_id, 'votes': self.one_gold, 'value': 'Yes'}
 
         self.assertEqual(voter['votes'][0], expected_vote_record)

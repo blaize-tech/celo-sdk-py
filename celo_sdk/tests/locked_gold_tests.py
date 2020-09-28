@@ -16,16 +16,14 @@ class TestLockedGoldWrapper(unittest.TestCase):
             'LockedGold')
         self.accounts_wrapper = self.kit.base_wrapper.create_and_get_contract_by_name(
             'Accounts')
-        self.kit.wallet.sign_with_provider = False
+        self.kit.wallet.sign_with_provider = True
         for _, v in test_data.deriv_pks.items():
             self.kit.wallet_add_new_key = v
+        
         self.accounts = self.kit.w3.eth.accounts
 
-        self.kit.wallet_add_new_key = test_data.pk1
-
-        # for account in self.accounts[:4]:
-        #     self.kit.w3.eth.defaultAccount = account
-        #     self.accounts_wrapper.create_account()
+        self.kit.w3.eth.defaultAccount = self.accounts[0]
+        self.kit.wallet_change_account = self.accounts[0]
 
         self.value = 120938732980
 

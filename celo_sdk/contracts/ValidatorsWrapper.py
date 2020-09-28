@@ -7,7 +7,6 @@ from celo_sdk.registry import Registry
 from web3 import Web3
 
 
-# TODO: test when other called SC wrappers will be written and callable
 class Validators(BaseWrapper):
     """
     Contract handling slashing for Validator downtime using intervals

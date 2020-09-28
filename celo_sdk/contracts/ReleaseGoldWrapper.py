@@ -10,7 +10,6 @@ from celo_sdk.registry import Registry
 from celo_sdk.utils import hash_utils
 
 
-# TODO: test when other called SC wrappers will be written and callable
 class ReleaseGold(BaseWrapper):
     """
     Contract for handling an instance of a ReleaseGold contract
@@ -419,7 +418,7 @@ class ReleaseGold(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    def set_account(self, name: str, data_encryption_key: bytes, wallet_address: str, v: int, r: int, s: int) -> str:
+    def set_account(self, name: str, data_encryption_key: bytes, wallet_address: str, v: int, r: 'HexBytes', s: 'HexBytes') -> str:
         """
         Beneficiary creates an account on behalf of the ReleaseGold contract
 
@@ -428,8 +427,8 @@ class ReleaseGold(BaseWrapper):
             data_encryption_key: bytes
             wallet_address: str
             v: int
-            r: int
-            s: int
+            r: 'HexBytes'
+            s: 'HexBytes'
         Returns:
             str
                 Transaction hash
@@ -468,14 +467,14 @@ class ReleaseGold(BaseWrapper):
 
         return self.__wallet.send_transaction(func_call)
 
-    def set_account_wallet_address(self, wallet_address: str, v: int, r: int, s: int) -> str:
+    def set_account_wallet_address(self, wallet_address: str, v: int, r: 'HexBytes', s: 'HexBytes') -> str:
         """
         Sets the wallet address for the account
         Parameters:
             wallet_address: str
             v: int
-            r: int
-            s: int
+            r: 'HexBytes'
+            s: 'HexBytes'
         Returns:
             str
                 Transaction hash
@@ -592,12 +591,12 @@ class ReleaseGold(BaseWrapper):
             pub_key = PublicKey.recover_from_msg_hash(
                 prefixed_msg, proof_of_signing_key_possession).to_hex()
             func_call = self._contract.functions.authorizeValidatorSignerWithPublicKey(
-                signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s, pub_key)
+                signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s), pub_key)
 
             return self.__wallet.send_transaction(func_call)
         else:
             func_call = self._contract.functions.authorizeValidatorSigner(
-                signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s)
+                signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s))
 
             return self.__wallet.send_transaction(func_call)
 
@@ -626,7 +625,7 @@ class ReleaseGold(BaseWrapper):
         pub_key = PublicKey.recover_from_msg_hash(
             prefixed_msg, proof_of_signing_key_possession).to_hex()
         func_call = self._contract.functions.authorizeValidatorSignerWithKeys(
-            signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s, pub_key, bls_pub_key, bls_pop)
+            signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s), pub_key, bls_pub_key, bls_pop)
 
         return self.__wallet.send_transaction(func_call)
 
@@ -644,7 +643,7 @@ class ReleaseGold(BaseWrapper):
                 Transaction hash
         """
         func_call = self._contract.functions.authorizeAttestationSigner(
-            signer, proof_of_signing_key_possession.v, proof_of_signing_key_possession.r, proof_of_signing_key_possession.s)
+            signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s))
 
         return self.__wallet.send_transaction(func_call)
 

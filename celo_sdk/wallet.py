@@ -185,7 +185,6 @@ class Wallet:
         """
         try:
             signed_tx = self.active_account.sign_transaction(tx)
-            print(f"Signed tx localy: {signed_tx}")
             return signed_tx.rawTransaction
         except:
             raise Exception(

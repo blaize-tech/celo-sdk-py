@@ -355,7 +355,7 @@ class Accounts(BaseWrapper):
                 name, data_encryption_key, wallet_address, proof_of_possession.v, self.web3.toBytes(proof_of_possession.r), self.web3.toBytes(proof_of_possession.s))
         else:
             func_call = self._contract.functions.setAccount(
-                name, data_encryption_key, wallet_address, '0x0', '0x0', '0x0')
+                name, data_encryption_key, wallet_address, 0, self.web3.toBytes('0x0'), self.web3.toBytes('0x0'))
         return self.__wallet.send_transaction(func_call)
 
     def set_name(self, name: str) -> str:
