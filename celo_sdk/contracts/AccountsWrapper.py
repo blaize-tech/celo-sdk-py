@@ -1,12 +1,14 @@
 import sys
 
-from eth_keys.datatypes import PublicKey
-from web3 import Web3
-
+from celo_sdk.celo_account.account import Account
+from celo_sdk.celo_account.messages import encode_defunct
 from celo_sdk.celo_account.datastructures import SignedMessage
-from celo_sdk.utils import hash_utils
 from celo_sdk.contracts.base_wrapper import BaseWrapper
 from celo_sdk.registry import Registry
+from celo_sdk.utils import hash_utils
+
+from eth_keys.datatypes import PublicKey
+from web3 import Web3
 
 
 class Accounts(BaseWrapper):
@@ -234,8 +236,8 @@ class Accounts(BaseWrapper):
             message = self.web3.soliditySha3(['address'], [account]).hex()
             prefixed_message_hash = hash_utils.hash_message_with_prefix(
                 self.web3, message)
-            pub_key = PublicKey.recover_from_msg_hash(
-                prefixed_message_hash, proof_of_signing_key_possession).to_hex()
+            prefixed_message_hash = encode_defunct(hexstr=prefixed_message_hash)
+            pub_key = Account.recover_hash_to_pub(prefixed_message_hash, vrs=proof_of_signing_key_possession.vrs).to_hex()
             func_call = self._contract.functions.authorizeValidatorSignerWithPublicKey(
                 signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r), self.web3.toBytes(proof_of_signing_key_possession.s), pub_key)
             return self.__wallet.send_transaction(func_call)
@@ -264,8 +266,8 @@ class Accounts(BaseWrapper):
         message = self.web3.soliditySha3(['address'], [account]).hex()
         prefixed_message_hash = hash_utils.hash_message_with_prefix(
             self.web3, message)
-        pub_key = PublicKey.recover_from_msg_hash(
-            prefixed_message_hash, proof_of_signing_key_possession).to_hex()
+        prefixed_message_hash = encode_defunct(hexstr=prefixed_message_hash)
+        pub_key = Account.recover_hash_to_pub(prefixed_message_hash, vrs=proof_of_signing_key_possession.vrs).to_hex()
 
         func_call = self._contract.functions.authorizeValidatorSignerWithKeys(signer, proof_of_signing_key_possession.v, self.web3.toBytes(proof_of_signing_key_possession.r),
                      self.web3.toBytes(proof_of_signing_key_possession.s), pub_key, hash_utils.is_leading_with_0x(bls_public_key), hash_utils.is_leading_with_0x(bls_pop))
@@ -273,8 +275,11 @@ class Accounts(BaseWrapper):
 
     def generate_proof_of_key_possession(self, account: str, signer: str) -> SignedMessage:
         message = self.web3.soliditySha3(['address'], [account]).hex()
+        prefixed_message_hash = hash_utils.hash_message_with_prefix(
+            self.web3, message)
+        prefixed_message_hash = encode_defunct(hexstr=prefixed_message_hash)
         signer_acc = self.__wallet.accounts[signer]
-        signature = signer_acc.sign_message(message)
+        signature = signer_acc.sign_message(prefixed_message_hash)
         return signature
 
     def get_name(self, account: str, block_number: int = None) -> str:
