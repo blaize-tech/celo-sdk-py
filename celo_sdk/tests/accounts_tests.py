@@ -8,6 +8,7 @@ from eth_keys.datatypes import PublicKey
 from hexbytes import HexBytes
 import eth_keys
 from celo_sdk.celo_account.messages import encode_defunct
+from celo_sdk.celo_account.account import Account
 
 from celo_sdk.kit import Kit
 from celo_sdk.tests import test_data
@@ -44,46 +45,6 @@ class TestAccountsWrapper(unittest.TestCase):
         self.kit.wallet.sign_with_provider = True
         print(self.accounts_wrapper.create_account())
 
-    def test_eth_sign(self):
-        accounts = self.kit.w3.eth.accounts
-
-        account = accounts[0]
-        signer = accounts[1]
-        
-        self.kit.w3.eth.defaultAccount = signer
-        self.kit.wallet_change_account = signer
-
-        signature = self.kit.w3.eth.sign(account=signer, text='0x8857ae6cb26d382cac66a53711ede22129df1628ab102efa2e4707c9a92cf123')
-        print(f"Signature:\n{signature.hex()}")
-    
-    def test_contract_verify_signature(self):
-        accounts = self.kit.w3.eth.accounts
-
-        account = accounts[0]
-        signer = accounts[1]
-        
-        self.kit.w3.eth.defaultAccount = signer
-        self.kit.wallet_change_account = signer
-        print(f"Signer: {signer}")
-
-        message = self.kit.w3.soliditySha3(['address'], [signer]).hex()
-        message = encode_defunct(text=message)
-        print(f"Message {message.body}")
-        signature = self.kit.wallet.sign_message(message.body)
-        print(f"signatures of message: {signature}")
-        print(f"Result: {self.accounts_wrapper._contract.functions.getSigner(signer, 27, HexBytes(signature.r), HexBytes(signature.s)).call()}")
-    
-    def test_hash_address_with_contract(self):
-        accounts = self.kit.w3.eth.accounts
-
-        account = accounts[0]
-        signer = accounts[1]
-        
-        self.kit.w3.eth.defaultAccount = signer
-        self.kit.wallet_change_account = signer
-
-        print(f"Hash: {HexBytes(self.accounts_wrapper._contract.functions.getHashAddress(signer).call()).hex()}")
-    
     def test_pub_key_recovering(self):
         accounts = self.kit.w3.eth.accounts
 
@@ -94,34 +55,11 @@ class TestAccountsWrapper(unittest.TestCase):
         self.kit.wallet_change_account = signer
 
         message = self.kit.w3.soliditySha3(['address'], [signer]).hex()
-        message = encode_defunct(text=message)
+        message = encode_defunct(hexstr=message)
         signature = self.kit.wallet.active_account.sign_message(message)
-        print(f"Signature: {signature}")
 
-        pub_key = PublicKey.recover_from_msg_hash(message.body, signature).to_hex()
-        print(f"Signer pub key: {pub_key}")
-    
-    def test_recover_with_eth_keys(self):
-        accounts = self.kit.w3.eth.accounts
+        self.assertEqual(Account.recover_hash_to_pub(message, vrs=signature.vrs).to_hex(), test_data.recovered_pub_key)
 
-        account = accounts[0]
-        signer = accounts[1]
-        
-        self.kit.w3.eth.defaultAccount = signer
-        self.kit.wallet_change_account = signer
-
-        signerPrivKey = eth_keys.keys.PrivateKey(HexBytes('0x5d862464fe9303452126c8bc94274b8c5f9874cbd219789b3eb2128075a76f72'))
-        print(f"address: {signerPrivKey.public_key.to_checksum_address()}")
-        message = self.kit.w3.soliditySha3(['address'], [signer]).hex()
-        message = encode_defunct(text=message)
-        signature = signerPrivKey.sign_msg(message.body)
-        
-        recoveredPubKey = signature.recover_public_key_from_msg(message.body)
-        print(f"Recovered pub key: {recoveredPubKey}")
-
-        signerPubKey = signerPrivKey.public_key
-        print(f"Signare actual pub key: {signerPubKey}")
-    
     def test_authorize_validator_key_not_validator(self):
         accounts = self.kit.w3.eth.accounts
 
@@ -135,7 +73,7 @@ class TestAccountsWrapper(unittest.TestCase):
 
         sig = self.get_parsed_signature_of_address(account, signer)
 
-        print(self.accounts_wrapper.authorize_validator_signer(signer, sig))
+        self.assertTrue(self.accounts_wrapper.authorize_validator_signer(signer, sig))
 
     def test_authorize_validator_key_validator(self):
         accounts = self.kit.w3.eth.accounts
@@ -158,7 +96,7 @@ class TestAccountsWrapper(unittest.TestCase):
         self.kit.wallet_change_account = account
         self.kit.w3.eth.defaultAccount = account
 
-        print(self.accounts_wrapper.authorize_validator_signer(signer.address, sig))
+        self.assertTrue(self.accounts_wrapper.authorize_validator_signer(signer.address, sig))
 
     def test_authorize_validator_key_change_bls_key(self):
         hex_characters = '0123456789abcdef'
@@ -179,13 +117,13 @@ class TestAccountsWrapper(unittest.TestCase):
 
         sig = self.get_parsed_signature_of_address(account, signer)
 
-        print(self.accounts_wrapper.authorize_validator_signer_and_bls(signer.address, sig, new_bls_public_key, new_bls_pop))
+        self.assertTrue(self.accounts_wrapper.authorize_validator_signer_and_bls(signer.address, sig, new_bls_public_key, new_bls_pop))
 
     def test_set_wallet_address_to_caller(self):
         accounts = list(self.kit.wallet.accounts.values())[1:]
 
         self.accounts_wrapper.create_account()
-        print(self.accounts_wrapper.set_wallet_address(accounts[0]))
+        self.assertTrue(self.accounts_wrapper.set_wallet_address(accounts[0]))
 
     def test_set_wallet_address_to_different_address(self):
         accounts = list(self.kit.wallet.accounts.values())[1:]
@@ -197,14 +135,14 @@ class TestAccountsWrapper(unittest.TestCase):
 
         signature = self.accounts_wrapper.generate_proof_of_key_possession(account, signer)
 
-        print(self.accounts_wrapper.set_wallet_address(signer, signature))
+        self.assertTrue(self.accounts_wrapper.set_wallet_address(signer, signature))
 
     def test_set_wallet_address_without_signature(self):
         """
         Should fail
         """
         accounts = list(self.kit.wallet.accounts.values())[1:]
-        print(self.accounts_wrapper.set_wallet_address(accounts[1]))
+        self.assertTrue(self.accounts_wrapper.set_wallet_address(accounts[1]))
 
     def register_account_with_locked_gold(self, account: str):
         if not self.accounts_wrapper.is_account(account):
@@ -217,7 +155,7 @@ class TestAccountsWrapper(unittest.TestCase):
         self.kit.wallet_change_account = signer
 
         message = self.kit.w3.soliditySha3(['address'], [address]).hex()
-        message = encode_defunct(text=message)
+        message = encode_defunct(hexstr=message)
         signature = self.kit.wallet.active_account.sign_message(message)
 
         self.kit.w3.eth.defaultAccount = address
