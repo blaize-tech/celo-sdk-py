@@ -16,7 +16,7 @@ def message_length(message: str) -> str:
     else:
         return str(len(message))
 
-def hash_message_with_prefix(web3: Web3, message: str) -> bytes:
+def hash_message_with_prefix(web3: Web3, message: str) -> str:
     prefix = '\x19Ethereum Signed Message:\n'
     hashed_message = web3.soliditySha3(['string'], [prefix + message_length(message) + message])
     return hashed_message

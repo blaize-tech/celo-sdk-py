@@ -162,7 +162,10 @@ In addition to signing the transaction, the wallet can sign messages:
 
 ```python
 from celo_sdk.kit import Kit
+from celo_sdk.celo_account.messages import encode_defunct
 
 kit = Kit('https://alfajores-forno.celo-testnet.org')
-signature = kit.wallet.sign_message(b'some message')
+message = self.kit.w3.soliditySha3(['address'], [signer]).hex()  # For example we want to sign someones address
+message = encode_defunct(hexstr=message)
+signature = self.kit.wallet.active_account.sign_message(message)
 ```
