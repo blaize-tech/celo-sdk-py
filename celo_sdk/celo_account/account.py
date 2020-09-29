@@ -443,6 +443,25 @@ class Account(object):
         return pubkey.to_checksum_address()
 
     @combomethod
+    def recover_hash_to_pub(self, signable_message, vrs=None, signature=None):
+        message_hash = _hash_eip191_message(signable_message)
+        hash_bytes = HexBytes(message_hash)
+        if len(hash_bytes) != 32:
+            raise ValueError("The message hash must be exactly 32-bytes")
+        if vrs is not None:
+            v, r, s = map(hexstr_if_str(to_int), vrs)
+            v_standard = to_standard_v(v)
+            signature_obj = self._keys.Signature(vrs=(v_standard, r, s))
+        elif signature is not None:
+            signature_bytes = HexBytes(signature)
+            signature_bytes_standard = to_standard_signature_bytes(signature_bytes)
+            signature_obj = self._keys.Signature(signature_bytes=signature_bytes_standard)
+        else:
+            raise TypeError("You must supply the vrs tuple or the signature bytes")
+        pubkey = signature_obj.recover_public_key_from_msg_hash(hash_bytes)
+        return pubkey
+
+    @combomethod
     def recoverTransaction(self, serialized_transaction):
         """
         .. CAUTION:: Deprecated for :meth:`~sdk.celo_account.account.Account.recover_transaction`.
