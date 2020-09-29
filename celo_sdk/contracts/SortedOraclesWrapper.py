@@ -1,4 +1,3 @@
-import sys
 from typing import List
 
 from celo_sdk.contracts.base_wrapper import BaseWrapper

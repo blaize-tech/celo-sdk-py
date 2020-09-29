@@ -1,5 +1,3 @@
-import sys
-
 from celo_sdk.contracts.base_wrapper import BaseWrapper
 from celo_sdk.registry import Registry
 

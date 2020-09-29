@@ -1,19 +1,15 @@
+import random
 import time
 import unittest
-import random
 
-from web3 import Web3
-from eth_keys import keys
-from eth_keys.datatypes import PublicKey
-from hexbytes import HexBytes
-import eth_keys
-from celo_sdk.celo_account.messages import encode_defunct
 from celo_sdk.celo_account.account import Account
-
+from celo_sdk.celo_account.messages import encode_defunct
 from celo_sdk.kit import Kit
 from celo_sdk.tests import test_data
 from celo_sdk.utils import utils
-from celo_sdk.celo_account._utils import signing
+from eth_keys import keys
+from hexbytes import HexBytes
+from web3 import Web3
 
 
 class TestAccountsWrapper(unittest.TestCase):

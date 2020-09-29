@@ -3,10 +3,8 @@ import sys
 
 import web3
 from celo_sdk.celo_account import Account
-from celo_sdk.celo_account.datastructures import SignedTransaction
 from hexbytes import HexBytes
 from web3 import Web3
-import eth_keys
 from celo_sdk.utils import hash_utils
 
 
@@ -189,11 +187,6 @@ class Wallet:
         except:
             raise Exception(
                 f"Error while sign transaction: {sys.exc_info()[1]}")
-
-    def sign_message(self, message: 'bytes str') -> 'Signature':
-        signer_priv_key = eth_keys.keys.PrivateKey(self.active_account._private_key)
-        signature = signer_priv_key.sign_msg(message)
-        return signature
 
     def sign_transaction_with_provider(self, tx: dict) -> 'RawSignedTransaction':
         """

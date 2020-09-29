@@ -111,6 +111,8 @@ For the moment, we have contract wrappers for:
 - StableToken
 - Validators
 
+To create object of contract wrapper you shold set one of those contract names as a parameter to function `BaseWrapper.create_and_get_contract_by_name(...)`
+
 ## A Note About Contract Addresses
 
 Celo Core Contracts addresses, can be obtained by looking at the `Registry` contract.

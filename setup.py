@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name="celo-sdk",
-    version="0.0.1",
+    version="1.0.0",
     author="BlaizeTech",
     author_email="info@blaize.tech",
     description="Celo Python SDK to work with smart contracts",
@@ -18,9 +18,10 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=required,
     classifiers=[
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache License 2.0",
         "Operating System :: Unix",
         "Programming Language :: Python :: 3.8",
+        "Blockchain :: Celo"
 
     ],
     python_requires='>=3.8',

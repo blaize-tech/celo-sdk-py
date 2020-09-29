@@ -10,6 +10,7 @@ from celo_sdk.celo_account.account import Account
 from celo_sdk.contracts.base_wrapper import BaseWrapper
 from celo_sdk.registry import Registry
 from celo_sdk.utils import attestations_utils
+from celo_sdk.celo_account.messages import encode_defunct
 
 
 class Attestations(BaseWrapper):
@@ -248,6 +249,7 @@ class Attestations(BaseWrapper):
         attestation_signer = accounts_contract.get_attestation_signer(issuer)
 
         message = self.web3.soliditySha3(['bytes32', 'address'], [identifier, account]).hex()
+        message = encode_defunct(hexstr=message)
         signer_address = Account.recoverHash(message, signature=code)
 
         if signer_address != attestation_signer:
@@ -277,6 +279,7 @@ class Attestations(BaseWrapper):
         """
         accounts_contract = self.create_and_get_contract_by_name('Accounts')
         message = self.web3.soliditySha3(['bytes32', 'address'], [identifier, account]).hex()
+        message = encode_defunct(hexstr=message)
         signer_address = Account.recoverHash(message, signature=code)
 
         for issuer in issuers:
@@ -395,6 +398,7 @@ class Attestations(BaseWrapper):
         attestation_signer = accounts_contract.get_attestation_signer(issuer)
 
         message = self.web3.soliditySha3(['bytes32', 'address'], [identifier, account]).hex()
+        message = encode_defunct(hexstr=message)
         signer_address = Account.recoverHash(message, signature=code)
 
         if signer_address != attestation_signer:

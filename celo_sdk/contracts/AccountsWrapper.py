@@ -7,7 +7,6 @@ from celo_sdk.contracts.base_wrapper import BaseWrapper
 from celo_sdk.registry import Registry
 from celo_sdk.utils import hash_utils
 
-from eth_keys.datatypes import PublicKey
 from web3 import Web3
 
 

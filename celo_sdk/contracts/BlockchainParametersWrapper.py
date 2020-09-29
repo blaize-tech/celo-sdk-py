@@ -1,6 +1,5 @@
 import sys
 
-from eth_keys.datatypes import PublicKey
 from web3 import Web3
 
 from celo_sdk.contracts.base_wrapper import BaseWrapper
