@@ -3,4 +3,5 @@ from celo_sdk import (
     wallet,
     tests,
     kit,
+    utils,
 )

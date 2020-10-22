@@ -12,6 +12,7 @@ setuptools.setup(
     author="BlaizeTech",
     author_email="info@blaize.tech",
     description="Celo Python SDK to work with smart contracts",
+    data_files=[("registry_contracts", ["celo_sdk/registry_contracts.json"])],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="",
