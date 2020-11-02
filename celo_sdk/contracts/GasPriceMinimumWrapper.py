@@ -18,7 +18,7 @@ class GasPriceMinimum:
             Wallet object to sign transactions
     """
 
-    def __init__(self, web3: Web3, address: str, abi: list, wallet: 'Wallet' = None):
+    def __init__(self, web3: Web3, address: str, abi: list, wallet: 'Wallet' = None, **kwargs):
         self.web3 = web3
         self.address = address
         self._contract = self.web3.eth.contract(self.address, abi=abi)

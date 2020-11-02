@@ -77,7 +77,7 @@ If you would like to pay fees in cUSD, set the gas price manually:
 ```python
 stable_token = kit.base_wrapper.create_and_get_contract_by_name('StableToken')
 gas_price_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum')
-gas_price_minimum = gas_price_contract.get_gas_price_minimum(stable.address)
+gas_price_minimum = gas_price_contract.get_gas_price_minimum(stable_token.address)
 gas_price = gas_price_minimum * 1.3 # Wiggle room if gas price minimum changes before tx is sent
 kit.wallet_fee_currency = stable_token.address # Default to paying fees in cUSD
 kit.wallet_gas_price = gas_price
@@ -167,7 +167,7 @@ from celo_sdk.kit import Kit
 from celo_sdk.celo_account.messages import encode_defunct
 
 kit = Kit('https://alfajores-forno.celo-testnet.org')
-message = self.kit.w3.soliditySha3(['address'], [signer]).hex()  # For example we want to sign someones address
+message = kit.w3.soliditySha3(['address'], [signer]).hex()  # For example we want to sign someones address
 message = encode_defunct(hexstr=message)
-signature = self.kit.wallet.active_account.sign_message(message)
+signature = kit.wallet.active_account.sign_message(message)
 ```

@@ -86,7 +86,7 @@ class BaseWrapper:
                 f"celo_sdk.contracts.{contract_name}Wrapper")
             contract_obj = getattr(contract_module, contract_name)
             contract = contract_obj(
-                self.web3, self.registry, contract_address, abi, self.wallet)
+                web3=self.web3, registry=self.registry, address=contract_address, abi=abi, wallet=self.wallet)
 
             self.contracts[contract_name] = contract
         except ModuleNotFoundError:
