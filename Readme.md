@@ -80,7 +80,7 @@ gas_price_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceM
 gas_price_minimum = gas_price_contract.get_gas_price_minimum(stable_token.address)
 gas_price = int(gas_price_minimum * 1.3) # Wiggle room if gas price minimum changes before tx is sent
 kit.wallet_fee_currency = stable_token.address # Default to paying fees in cUSD
-kit.wallet_gas_price = gas_price
+kit.wallet_gas_price = int(gas_price)
 
 tx = stable_token.transfer(recipient, wei_transfer_amount)
 ```
