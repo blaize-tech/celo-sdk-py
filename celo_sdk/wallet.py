@@ -85,7 +85,7 @@ class Wallet:
 
     @gateway_fee_recipient.setter
     def gateway_fee_recipient(self, new_gateway_fee_recipient: str):
-        if not self.web3.is_Address(new_gateway_fee_recipient):
+        if not self.web3.isAddress(new_gateway_fee_recipient):
             raise TypeError("Incorrect gateway fee recipient")
         self._gateway_fee_recipient = new_gateway_fee_recipient
 
